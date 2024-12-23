@@ -1,0 +1,14 @@
+{
+    "type": "service_account",
+    "project_id": "disco-beach-328822",
+    "private_key_id": "2814097094c56ec7b927052df99985387605f0dc",
+    "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCwKd6e3KcRHR4G\norbCpud3jfegCUCuLN4+7Y2wbqUMvUT5ecY0ajbQcvndfGniOJKyxkLthXQOUDyj\nNMw/jIFl8OEKZir+l4TGmfgYEacsukeemcRgY0+Jk/jF7ZVmecZQm9xs0Nbs/Cwb\n76CACXyFxyRj8GRR0KKFZn+l5LewPWNKGpMYgwHU/+U1FHtho4GFR8hS37E4KzfZ\nmwGszvOWAUJG9/0bjIPmrL+dx3aizzjF2uaxO7AbboLBxY0pPb26gUqlbjeGyoky\nzZSR8meQbXLcw5DSRT//Mj30wdMi+h1xeYIotEEqinbAqE0VJkq0sQjNVMd7PxwL\nR9/GXaSPAgMBAAECggEAEIU8rWU//ajfYfvsa8C/QET+DfIQMMVgakJY4UzfCZzO\nVR8IaW30igPeTtkWDPMFPuK88A1t3tHDfgK7jNIeaHL4h8MhERMgjodt7sPpC5bE\nlKkS838cvGg2Ekm/kwakhHa5azMClOLpOA123csF9H3CeeTXY5zPQPdlzSbv2wUe\nb0gci9j5l4deX6wb0JHf6i7yugCxAjV1LV5HvjYPNiTROFlM/+vb0oBig+05aFdO\nuKldH4DgN3p2T4pza9muiGZn9t+krB08z9HZWjv9o9PxQbkXoX9PYg7HJnYTPp2x\nr9H2kwQPUrl6wHDezH6A+cVWeh7K54OxpT0fFfGSUQKBgQD4390FMigEgyfiCc06\nAsO6LcvhOZNlWo9WmJEFLQIZRrBY6l+AcKluEWWvkTOAlpBiwjVTlTKSdJApvsmQ\naiC0xZr30nVY+U0pq0z8CrtszAtsaU96JE/tT7C8xpWi7JzMq+P8TQGGjPb1DM5q\nRjZiD/FPUwVd6tJtNCm4F5LutQKBgQC1NRF+EscPoEc68NxPwRrn6XvdZUwrwVlC\nsBvZ0sgLiQvLPVWJMiP902+sfDgaIzVLejAfMcdQyX7jN29+MR0aMpcq3fwjH7Im\nlk2lmpG0jCsqHrdtSx4wjm01/I3rNL4az0Md2ewc4lqMCSwkEEc8WtfffOxRjyZo\nUwulw5dMswKBgAgu/EqOcqhrU6VoIxp0OtFlbh3S0dj0WGBFlgcwirAgFe5mjotf\nqQKYidpzENl6mfbVYgGEl2wfbxogTupzwu2OzeC2R+uMDxB+tIJZK/6Q2xNOhzGB\n/irUgwBCG2uHEkTcphuGwLUW74vxRtxRwLoKwimUlkmXTiIPJAwMomU9AoGAajGi\ngbbxb6fndpRHGHo7kWOUkofV3uKds+ZPPBU55QC4p6/XG+MFkrBBhtz5Z9/wUL5X\ny0A55Y9gTDplnZeczYiObLHRHKhrmA+Hi6CM+TkX5sQ/jM5z79LYD8ZlSU0Mh9ul\nIq5eoALLO7v4YV4k0SsPzcqBF78DrCnW7ps0ZN8CgYB81dEHDpJD2ZMmut6//7k2\ndDaUlmNF+vEGSs9AAEpuWNYNf93uhbt7tN8j5uK+yNeMe9JCkwgVCt7dZ8RYiyMr\nkPb850dKANi5NPCpstp2/wAV79qsZ/teps5PcbprJxXpyU62FydejSmyy2nTVLGN\nQyeVO009qSIbR8sHXji2gw==\n-----END PRIVATE KEY-----\n",
+    "client_email": "superpower@disco-beach-328822.iam.gserviceaccount.com",
+    "client_id": "111133714421641837606",
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/superpower%40disco-beach-328822.iam.gserviceaccount.com",
+    "universe_domain": "googleapis.com"
+  }
+  

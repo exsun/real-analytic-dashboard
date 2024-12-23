@@ -1,0 +1,31 @@
+@import url('https://fonts.cdnfonts.com/css/dana');
+
+html, body, [class*="css"]  {
+    font-family: 'dana', sans-serif;
+    direction: RTL;
+    unicode-bidi: bidi-override;
+    text-align: right;
+}
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'dana', sans-serif;
+}
+
+.stButton > button {
+    font-family: 'dana', sans-serif !important;
+} 
+.dataframe {
+    font-family: 'dana', sans-serif;
+    direction: rtl;
+    unicode-bidi: bidi-override;
+    text-align: right;
+}
+
+.element-container {
+    direction: rtl;
+}
+.stTextInput, .stSelectbox {
+    direction: rtl;
+    text-align: right;
+}
+
+

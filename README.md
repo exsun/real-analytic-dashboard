@@ -22,7 +22,7 @@ This project is a real-time monitoring dashboard for **athletics performance** a
 ### Data Flow Diagram
 
 ```mermaid
-graph LR
+graph LR;
   A[Smart Rings & Wearable Sensors] -->|BLE Data| B[BLE Hub (In-House Transmitter)];
   B -->|Sensor Data (Heart Rate, HRV, Sleep, Fatigue)| C[Monitoring Server];
   C -->|Data Processing| D[Real-Time Analytics Engine];
