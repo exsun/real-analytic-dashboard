@@ -1,15 +1,19 @@
 # app.py
 import streamlit as st
 from streamlit import session_state as state
-from utils import local_css
+
 st.set_page_config(
     page_title="ارزیابی عملکرد کشتی",
     page_icon="🎯",
     layout="wide",
     # initial_sidebar_state="expanded",
-    # menu_items={}
+    menu_items={}
 )
-# def main():
+def local_css(file_name):
+    with open(file_name) as f:
+        st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+
+local_css("styles/custom.css")
 
 form = st.Page(
     "pages/form/power.py", title="تست قدرت", icon=":material/notification_important:"
@@ -31,6 +35,5 @@ pg = st.navigation(
         }
     )
 
-local_css("styles/custom.css")
 
 pg.run()

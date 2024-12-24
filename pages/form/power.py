@@ -154,14 +154,13 @@ with st.form("workout_form", enter_to_submit=False, border=True):
                 # confirm = st.button("ثبت",key=f"confirm_{i}")
                 chart_data = pd.DataFrame(
                     {
-                        "Reps": df['Reps'],
+                        "Weight": df['Weight'],
                         "% of 1RM": df['% of 1RM'],
                         # "col3": ["A"] * 20 + ["B"] * 20 + ["C"] * 20,
                     }
                 )
 
-                st.line_chart(chart_data, x="% of 1RM", y="Reps")
-
+                st.line_chart(chart_data, x="% of 1RM", y="Weight")
 
     col1, col2 = st.columns(2)
     with col1:

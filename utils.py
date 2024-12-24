@@ -39,8 +39,8 @@ def inset_data_worksheet(conn, worksheet_name, dataframe):
         print(dataframe)
         conn.update(worksheet=worksheet_name, data=dataframe)
         st.success("اطلاعات با موفقیت ذخیره شد !")
-        st.cache_data.clear()
-        st.rerun()
+        # st.cache_data.clear()
+        # st.rerun()
 
     except Exception as e:
         st.error(f"Error: {e}")
