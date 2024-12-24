@@ -22,15 +22,18 @@ form = st.Page(
 onerm = st.Page(
     "pages/form/orm.py", title="orm", icon=":material/notification_important:"
 )
-
+expand = st.Page(
+    "pages/form/expand.py", title="فرم تست قدرت و اسقامت", icon=":material/notification_important:"
+)
 dashboard = st.Page(
     "pages/dashboard.py", title="قدرت", icon=":material/notification_important:"
 )
 pg = st.navigation(
         {
-            "فرم": [form],
+            "فرم": [expand],
             "آنالیز": [dashboard],
-            "onerm": [onerm],
+            # "onerm": [onerm],
+            # "expand": [expand]
 
         }
     )

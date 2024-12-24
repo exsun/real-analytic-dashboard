@@ -23,9 +23,16 @@ h1, h2, h3, h4, h5, h6 {
 .element-container {
     direction: rtl;
 }
-.stTextInput, .stSelectbox {
+
+
+.stSlider {
+    direction: ltr;
+    text-align: right;
+    padding: 2px;
+    justify-items: end;
+}
+
+.stTextInput, .stSelectbox .stWidgetLabel {
     direction: rtl;
     text-align: right;
 }
-
-
