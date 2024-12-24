@@ -19,7 +19,7 @@ form = st.Page(
     "pages/form/power.py", title="تست قدرت", icon=":material/notification_important:"
 )
 
-onerm = st.Page(
+orm = st.Page(
     "pages/form/orm.py", title="orm", icon=":material/notification_important:"
 )
 expand = st.Page(
@@ -32,7 +32,7 @@ pg = st.navigation(
         {
             "فرم": [expand],
             "آنالیز": [dashboard],
-            # "onerm": [onerm],
+            "یک تکرار بیشینه": [orm],
             # "expand": [expand]
 
         }
