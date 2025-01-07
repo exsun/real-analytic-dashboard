@@ -32,7 +32,7 @@ with st.sidebar:
     years = list(range(JalaliDate.today().year+1, 1390, -1))
     months = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"]
     days = list(range(1, 32))
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3 = st.columns(3,vertical_alignment="top")
 
     with col1:
         selected_year = st.sidebar.selectbox("سال", years, index=years.index(JalaliDate.today().year))
