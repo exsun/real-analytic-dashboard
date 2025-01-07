@@ -2,7 +2,7 @@
 import streamlit as st
 from streamlit import session_state as state
 from streamlit_nej_datepicker import datepicker_component, Config
-
+from persiantools.jdatetime import JalaliDate
 from datetime import datetime
 import pytz
 
@@ -28,8 +28,32 @@ st.title("سامانه پایش کشتی گیران ایران")
 
 with st.sidebar:
     athlete_name = st.sidebar.text_input("نام ورزشکار", key="athlete_name")
-    record_date = st.sidebar.date_input("تاریخ", key="date")
+    # Sidebar Jalali Date Input
+    years = list(range(JalaliDate.today().year+1, 1390, -1))
+    months = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"]
+    days = list(range(1, 32))
+    col1, col2, col3 = st.columns(3)
 
+    with col1:
+        selected_year = st.sidebar.selectbox("سال", years, index=years.index(JalaliDate.today().year))
+    with col2:
+        selected_month = st.sidebar.selectbox("ماه", months, index=JalaliDate.today().month - 1)
+    with col3:
+        selected_day = st.sidebar.selectbox("روز", days, index=JalaliDate.today().day - 1)
+
+    # Convert to Jalali Date
+    record_date = JalaliDate(selected_year, months.index(selected_month) + 1, selected_day)
+
+    # Convert to Gregorian for internal processing (if needed)
+    gregorian_date = record_date.to_gregorian()
+
+    # Display Selected Jalali Date
+    st.sidebar.write(f"تاریخ انتخاب شده: ")
+    st.sidebar.write(record_date, gregorian_date)
+\
+
+if "record_data" not in st.session_state:
+    st.session_state.record_data = {}
 col1, col2 = st.columns(2)
 with col1:
     if not athlete_name:
@@ -37,7 +61,7 @@ with col1:
         # st.session_state.athlete_name = None
     else:
         st.subheader(athlete_name)
-        # st.session_state.athlete_name = athlete_name
+        st.session_state.record_data["athlete_name"] = athlete_name
 
 with col2:
     if not record_date:
@@ -46,8 +70,7 @@ with col2:
 
     else:
         st.subheader(record_date)
-        # st.session_state.record_date = record_date
-        # st.session_state.record_date = record_date
+        st.session_state.record_data["date"] = record_date
 
 
 # Display the selected date
