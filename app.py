@@ -18,7 +18,7 @@ def local_css(file_name):
     with open(file_name) as f:
         st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
-local_css("styles/custom.css")
+local_css("assets/styles/custom.css")
 
 
 # Widgets shared by all the pages
@@ -50,7 +50,6 @@ with st.sidebar:
     # Display Selected Jalali Date
     st.sidebar.write(f"تاریخ انتخاب شده: ")
     st.sidebar.write(record_date, gregorian_date)
-\
 
 if "record_data" not in st.session_state:
     st.session_state.record_data = {}
@@ -115,16 +114,11 @@ blood_urine = st.Page(
 #     "pages/dashboard.py", title="قدرت", icon=":material/notification_important:"
 # )
 
-# zelat = st.Page(
-#     "pages/form/ormcopy.py", title="zelat", icon=":material/notification_important:"
-# )
+
 pg = st.navigation(
         {
             "تست ها:": [strength, stamina, anaerobic, agility, reaction, felexibility, power, muscle_stamina],
             "پرسشنامه ها:": [sleep, stress_anxiety, blood_urine]
-            # "آنالیز": [dashboard, zelat],
-            # "یک تکرار بیشینه": [orm],
-            # "expand": [expand]
 
         }
     )
