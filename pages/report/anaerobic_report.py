@@ -8,13 +8,13 @@ if "anaerobic_test_data" not in st.session_state:
     st.session_state.anaerobic_test_data = [
         {
             "Date (Gregorian)": datetime.datetime(2023, 12, 31),
-            "Test": "Performance Decrease",
+            "test_type": "Performance Decrease",
             "تاریخ": "1402-10-10",
             "Performance Decrease (%)": 15.0
         },
         {
             "Date (Gregorian)": datetime.datetime(2024, 1, 1),
-            "Test": "RAST",
+            "test_type": "RAST",
             "تاریخ": "1402-10-11",
             "Peak Power (W)": 350,
             "Average Power (W)": 250,
@@ -22,7 +22,7 @@ if "anaerobic_test_data" not in st.session_state:
         },
         {
             "Date (Gregorian)": datetime.datetime(2024, 2, 1),
-            "Test": "RAST",
+            "test_type": "RAST",
             "تاریخ": "1402-11-11",
             "Peak Power (W)": 460,
             "Average Power (W)": 12,
@@ -30,7 +30,7 @@ if "anaerobic_test_data" not in st.session_state:
         },
         {
             "Date (Gregorian)": datetime.datetime(2024, 1, 2),
-            "Test": "Wingate",
+            "test_type": "Wingate",
             "تاریخ": "1402-10-12",
             "Peak Power (W)": 400,
             "Average Power (W)": 300,
@@ -38,7 +38,7 @@ if "anaerobic_test_data" not in st.session_state:
         },
         {
             "Date (Gregorian)": datetime.datetime(2024, 2, 2),
-            "Test": "Wingate",
+            "test_type": "Wingate",
             "تاریخ": "1402-11-12",
             "Peak Power (W)": 500,
             "Average Power (W)": 350,
@@ -46,7 +46,7 @@ if "anaerobic_test_data" not in st.session_state:
         },
         {
             "Date (Gregorian)": datetime.datetime(2024, 3, 2),
-            "Test": "Wingate",
+            "test_type": "Wingate",
             "تاریخ": "1402-12-12",
             "Peak Power (W)": 450,
             "Average Power (W)": 300,
@@ -54,14 +54,14 @@ if "anaerobic_test_data" not in st.session_state:
         },
         {
             "Date (Gregorian)": datetime.datetime(2024, 1, 3),
-            "Test": "Burpee",
+            "test_type": "Burpee",
             "تاریخ": "1402-10-13",
             "Total Burpees": 40,
             "Average Anaerobic Power (W)": 50
         },
         {
             "Date (Gregorian)": datetime.datetime(2024, 2, 3),
-            "Test": "Burpee",
+            "test_type": "Burpee",
             "تاریخ": "1402-11-13",
             "Total Burpees": 65,
             "Average Anaerobic Power (W)": 67
@@ -77,7 +77,7 @@ st.subheader("انتخاب تاریخ‌ها برای مقایسه")
 # Filter Data Based on Selected Dates
 
 def filter_data(test_type):
-    filtered_data = df_tests[df_tests["Test"] == test_type]
+    filtered_data = df_tests[df_tests["test_type"] == test_type]
 
     selected_dates = st.multiselect("تاریخ‌ها را انتخاب کنید:", options=filtered_data["تاریخ"].unique(), key=test_type)
 
