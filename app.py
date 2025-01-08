@@ -22,58 +22,6 @@ local_css("assets/styles/custom.css")
 
 
 # Widgets shared by all the pages
-
-# Title
-st.title("سامانه پایش کشتی گیران ایران")
-
-with st.sidebar:
-    athlete_name = st.sidebar.text_input("نام ورزشکار", key="athlete_name")
-    # Sidebar Jalali Date Input
-    years = list(range(JalaliDate.today().year+1, 1390, -1))
-    months = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"]
-    days = list(range(1, 32))
-    col1, col2, col3 = st.columns(3,vertical_alignment="top")
-
-    with col1:
-        selected_year = st.sidebar.selectbox("سال", years, index=years.index(JalaliDate.today().year))
-    with col2:
-        selected_month = st.sidebar.selectbox("ماه", months, index=JalaliDate.today().month - 1)
-    with col3:
-        selected_day = st.sidebar.selectbox("روز", days, index=JalaliDate.today().day - 1)
-
-    # Convert to Jalali Date
-    record_date = JalaliDate(selected_year, months.index(selected_month) + 1, selected_day)
-
-    # Convert to Gregorian for internal processing (if needed)
-    gregorian_date = record_date.to_gregorian()
-
-    # Display Selected Jalali Date
-    st.sidebar.write(f"تاریخ انتخاب شده: ")
-    st.sidebar.write(record_date, gregorian_date)
-
-if "record_data" not in st.session_state:
-    st.session_state.record_data = {}
-col1, col2 = st.columns(2)
-with col1:
-    if not athlete_name:
-        st.subheader("ابتدا ورزشکار انتخاب کنید")
-        # st.session_state.athlete_name = None
-    else:
-        st.subheader(athlete_name)
-        st.session_state.record_data["athlete_name"] = athlete_name
-
-with col2:
-    if not record_date:
-        st.subheader("تاریخ مورد نظر را انتخاب کنید")
-        # st.session_state.record_date = None
-
-    else:
-        st.subheader(record_date)
-        st.session_state.record_data["date"] = record_date
-
-
-# Display the selected date
-
 strength = st.Page(
     "pages/form/strength.py", title="قدرت", icon=":material/notification_important:"
 )
@@ -107,6 +55,9 @@ stress_anxiety = st.Page(
 blood_urine = st.Page(
     "pages/form/blood_urine.py", title="خون - ادرار", icon=":material/sleep:"
 )
+anaerobic_report = st.Page(
+    "pages/report/anaerobic_report.py", title="بی هوازی", icon=":material/sleep:"
+)
 # orm = st.Page(
 #     "pages/form/orm.py", title="orm", icon=":material/notification_important:"
 # )
@@ -115,13 +66,82 @@ blood_urine = st.Page(
 # )
 
 
-pg = st.navigation(
+# Title
+st.title("سامانه پایش کشتی گیران ایران")
+
+# Sidebar Jalali Date Input
+
+
+
+if "record_data" not in st.session_state:
+    st.session_state.record_data = {}
+
+col1, col2 = st.columns(2)
+    
+with col1:
+    col12, col13 = st.columns(2,vertical_alignment="top")
+    with col12:
+        athlete_name = st.text_input("نام ورزشکار", key="athlete_name")
+    with col13:
+        athlete_weight = st.number_input("وزن ورزشکار", key="athlete_weight")
+
+
+
+with col2:
+    years = list(range(JalaliDate.today().year+1, 1390, -1))
+    months = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"]
+    days = list(range(1, 32))
+
+    col21, col22, col23 = st.columns(3,vertical_alignment="top")
+
+    with col21:
+        selected_year = st.selectbox("سال", years, index=years.index(JalaliDate.today().year))
+    with col22:
+        selected_month = st.selectbox("ماه", months, index=JalaliDate.today().month - 1)
+    with col23:
+        selected_day = st.selectbox("روز", days, index=JalaliDate.today().day - 1)
+
+    # Convert to Jalali Date
+    record_date = JalaliDate(selected_year, months.index(selected_month) + 1, selected_day)
+
+    # Convert to Gregorian for internal processing (if needed)
+    gregorian_date = record_date.to_gregorian()
+
+    # Display Selected Jalali Date
+#     if not record_date:
+#         # st.session_state.record_date = None
+
+#     else:
+#         st.subheader(record_date)
+#         st.session_state.record_data["date"] = record_date
+# if not athlete_name:
+
+    
+
+# else:
+st.session_state.record_data["date"] = record_date
+st.session_state.record_data["athlete_name"] = athlete_name
+st.session_state.record_data["athlete_weight"] = athlete_weight
+
+# with col1:
+#     st.subheader(athlete_name)
+# with col2:
+#     st.subheader(record_date)
+if athlete_name and athlete_weight != 0.0:
+    pg = st.navigation(
         {
             "تست ها:": [strength, stamina, anaerobic, agility, reaction, felexibility, power, muscle_stamina],
-            "پرسشنامه ها:": [sleep, stress_anxiety, blood_urine]
+            "پرسشنامه ها:": [sleep, stress_anxiety, blood_urine],
+            "گزارش": [anaerobic_report]
 
         }
     )
 
+    pg.run()
 
-pg.run()
+
+
+
+
+
+

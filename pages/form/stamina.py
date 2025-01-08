@@ -24,7 +24,7 @@ def calculate_vo2max_cooper(distance_km):
 # Tab 1: 6-Minute Test
 with tab1:
     st.subheader("محاسبه VO2Max: 6-Minute Test")
-    with st.form("6min_form", clear_on_submit=False):
+    with st.form("6min_form", clear_on_submit=False, enter_to_submit=False):
         distance_6min = st.number_input("مسافت طی شده (کیلومتر)", min_value=0.0, step=0.01, key="distance_6min")
         record_type = st.selectbox("آزمون", options=["pre-test","post-test"])
         submitted_6min = st.form_submit_button("محاسبه")

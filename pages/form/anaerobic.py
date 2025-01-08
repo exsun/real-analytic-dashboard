@@ -36,7 +36,7 @@ def calculate_performance(performance):
   
 
 # Tabs for different functionalities
-tab1, tab2, tab3, tab4 , tab5 = st.tabs(["افت عملکرد ۸۰۰ متر", "RAST", "wingate", "Burpee", "📋 تاریخچه"])
+tab1, tab2, tab3, tab4 , tab5 = st.tabs(["افت عملکرد", "RAST", "wingate", "Burpee", "📋 تاریخچه"])
 
 # Tab 1: Anaerobic Test Input
 with tab1:
@@ -67,7 +67,6 @@ with tab1:
             st.error("لطفاً مقادیر معتبر وارد کنید.")
 
 # Tab 2: RAST Test
-# Tab 2: RAST Test
 with tab2:
     st.subheader("آزمون RAST")
     st.markdown("""
@@ -81,7 +80,6 @@ with tab2:
     """)
     
     with st.form("rast_form", clear_on_submit=False):
-        body_mass = st.number_input("وزن بدن (کیلوگرم)", min_value=1.0, step=0.1, key="body_mass")
         distance = 35  # Fixed distance for RAST
         sprint_times = [
             st.number_input(f"زمان دوی {i+1} (ثانیه)", min_value=0.1, step=0.01, key=f"sprint_{i+1}")
@@ -91,7 +89,8 @@ with tab2:
     
     if submitted:
         # Calculate power for each sprint
-        sprint_powers = [calculate_power(body_mass, distance, t) for t in sprint_times]
+        athlete_weight = st.session_state.record_data["athlete_weight"]
+        sprint_powers = [calculate_power(athlete_weight, distance, t) for t in sprint_times]
         total_power = sum(sprint_powers)  # Total Anaerobic Power
         average_power = total_power / 6 if total_power > 0 else 0
         max_power = max(sprint_powers)  # Peak Power
@@ -292,19 +291,19 @@ with tab4:
         
     with st.form("burpee_form", clear_on_submit=True):
         burpee_count = st.number_input("تعداد کل بورپی", min_value=1, step=1, key="burpee_count")
-        body_mass = st.number_input("وزن بدن (کیلوگرم)", min_value=1.0, step=0.1, key="burpee_body_mass")
         jump_height = st.number_input("میانگین ارتفاع پرش (متر)", min_value=0.1, step=0.01, key="jump_height")
         duration = st.number_input("مدت زمان آزمون (ثانیه)", min_value=1, value=45, step=1, key="burpee_duration")
         submitted = st.form_submit_button("محاسبه")
     
     if submitted:
-        if burpee_count > 0 and body_mass > 0 and jump_height > 0:
-            
+        athlete_weight = st.session_state.record_data["athlete_weight"]
+        if burpee_count > 0 and athlete_weight > 0 and jump_height > 0:
+
             g = 9.8  # Gravitational acceleration
             
             # Calculate metrics
-            avg_power = (burpee_count * body_mass * g * jump_height) / duration
-            total_power = avg_power * duration
+            avg_power = round((burpee_count * athlete_weight * g * jump_height) / duration , 2)
+            total_power = round(avg_power * duration, 2)
             
             # Current time for storage
             current_time = datetime.datetime.now()
@@ -315,14 +314,14 @@ with tab4:
                 "Test": "burpee",
                 "تاریخ": gregorian_to_jalali(current_time),
                 "تعداد کل بورپی": burpee_count,
-                "توان بی‌هوازی متوسط (W)": round(avg_power, 2),
-                "توان بی‌هوازی کل (W)": round(total_power, 2)
+                "توان بی‌هوازی متوسط (W)": avg_power,
+                "توان بی‌هوازی کل (W)": total_power
             })
             
             # Display metrics
             st.metric(label="تعداد کل بورپی", value=burpee_count)
-            st.metric(label="توان بی‌هوازی متوسط (W)", value=f"{round(avg_power, 2)} W")
-            st.metric(label="توان بی‌هوازی کل (W)", value=f"{round(total_power, 2)} W")
+            st.metric(label="توان بی‌هوازی متوسط (W)", value=f"{avg_power} W")
+            st.metric(label="توان بی‌هوازی کل (W)", value=f"{total_power} W")
 
 # Tab 5: History
 with tab5:

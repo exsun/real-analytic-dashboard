@@ -9,7 +9,7 @@ import datetime
 if "flexibility_test_data" not in st.session_state:
     st.session_state.flexibility_test_data = []
 
-tab1, tab2 = st.tabs(["آزمون چابکی", "📋 تاریخچه"])
+tab1, tab2 = st.tabs(["آزمون انعطاف پذیری", "📋 تاریخچه"])
 
 with tab1:
     st.subheader("آزمون‌های انعطاف‌پذیری")
@@ -58,7 +58,7 @@ with tab1:
             y="Distance (centemeter)",
             color="Distance Type",
             barmode="group",
-            title="تغییرات زمانی در آزمون‌های چابکی",
+            title="تغییرات زمانی در آزمون‌های انعطاف پذیری",
             labels={"تاریخ": "تاریخ", "Distance (centemeter)": "مدت زمان (ثانیه)", "Distance Type": "نوع آزمون"}
 
         )
@@ -91,7 +91,7 @@ with tab2:
             y="Distance (centemeter)",
             color="Distance Type",
             barmode="group",
-            title="تغییرات زمانی در آزمون‌های چابکی",
+            title="تغییرات زمانی در آزمون‌های انعطاف پذیری",
             labels={"تاریخ": "تاریخ", "Distance (centemeter)": "مدت زمان (ثانیه)", "Distance Type": "نوع آزمون"}
 
         )
