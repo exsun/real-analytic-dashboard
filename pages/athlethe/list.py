@@ -17,7 +17,7 @@ import string
 import time
 
 
-def bar_line_plot(x , y):
+def bar_line_plot(x , y, xaxis_title, yaxis_title):
        # Create Bar Plot
         bar_trace = go.Bar(
             x=x,
@@ -41,11 +41,14 @@ def bar_line_plot(x , y):
         # Set layout properties
         fig.update_layout(
             title="Bar Plot with Line Overlay",
-            xaxis_title="Category",
-            yaxis_title="Value",
+            xaxis_title=xaxis_title,
+            yaxis_title=yaxis_title,
             barmode='group',
-            template="plotly_white"
+            template="plotly_white",
+            xaxis=dict(type="category"),
+            title_x=0.5,  # Center the title
         )
+            
 
         # Display the plot in Streamlit
         st.plotly_chart(fig)
@@ -59,9 +62,9 @@ def strenght_history(results):
         results['estimated_1rm'] = results['raw_data'].apply(lambda x: x['estimated_1rm'])
         col1 , col2 = st.columns(2)
         st.dataframe(results,hide_index=True)
-        bar_line_plot(x=results["test_date"], y=results["estimate_power"])
+        bar_line_plot(x=results["test_date"], y=results["estimate_power"], xaxis_title="تاریخ" ,yaxis_title="قدرت نسبی")
 
-        bar_line_plot(x=results["test_date"], y=results["estimated_1rm"])
+        bar_line_plot(x=results["test_date"], y=results["estimated_1rm"], xaxis_title="تاریخ" ,yaxis_title="یک تکرار بیشینه")
 
 
 @st.fragment
@@ -86,9 +89,13 @@ def show_athlete_results():
                         athletes["name"], 
                         placeholder="انتخاب کنید"
         )
-    
+
         athlete_id = athletes.loc[athletes["name"] == athlete_name, "athlete_id"].values[0] if not athletes.loc[athletes["name"] == athlete_name, "athlete_id"].empty else ""
+        # print("result",list_athlete_history(athlete_id))
         results = pd.DataFrame(list_athlete_history(athlete_id)).sort_values(by='test_date')  
+        # print(results)
+        # results["timestamp"] = pd.to_datetime(results["gregorian_date"])
+        results["date"] = pd.to_datetime(results["gregorian_date"])
 
         athlete_weight = athletes.loc[athletes["name"] == athlete_name, "weight"].values[0] if not athletes.loc[athletes["name"] == athlete_name, "weight"].empty else ""
 
@@ -96,12 +103,14 @@ def show_athlete_results():
         st.session_state.record_data["athlete_weight"] = athlete_weight
         st.session_state.record_data["athlete_id"] = athlete_id
 
+        # print("gregorian_date",pd.to_datetime(results['gregorian_date']))
+        # print("from",pd.to_datetime(st.session_state.record_data["record_date_range"]['from'].togregorian()))
         if st.session_state.record_data["record_date_range"] and st.session_state.record_data["record_date_range"]['to']:
-            results = results[(pd.to_datetime(results['test_date']) >= pd.to_datetime(st.session_state.record_data["record_date_range"]['from'].togregorian())) 
+            results = results[(results['date'] >= pd.to_datetime(st.session_state.record_data["record_date_range"]['from'].togregorian())) 
                                 & 
-                            (pd.to_datetime(results['test_date']) <= pd.to_datetime(st.session_state.record_data["record_date_range"]['to'].togregorian()))
+                            (results['date'] <= pd.to_datetime(st.session_state.record_data["record_date_range"]['to'].togregorian()))
                             ]
-        print(results[results.test_category == "قدرت"])
+        # print(results[results.test_category == "قدرت"])
         strenght_history(results[results.test_category == "قدرت"])
 
 
