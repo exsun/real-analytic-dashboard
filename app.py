@@ -22,7 +22,7 @@ try:
     st.session_state["client"] = st.connection(
         name="supabase",
         type=SupabaseConnection,
-        ttl=None,
+        ttl=0,
     )
     st.session_state["initialized"] = True
 except Exception as e:
@@ -43,9 +43,6 @@ def local_css(file_name):
         st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
 local_css("assets/styles/custom.css")
-
-
-
 
 # Widgets shared by all the pages
 strength = st.Page(
