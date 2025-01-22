@@ -1,156 +1,138 @@
-import datetime
+import numpy as np
 import pandas as pd
-import plotly.express as px
 import streamlit as st
+from persiantools.jdatetime import JalaliDate
+from datetime import datetime
 
-# Sample Data for Testing
-if "anaerobic_test_data" not in st.session_state:
-    st.session_state.anaerobic_test_data = [
-        {
-            "Date (Gregorian)": datetime.datetime(2023, 12, 31),
-            "test_type": "Performance Decrease",
-            "تاریخ": "1402-10-10",
-            "Performance Decrease (%)": 15.0
-        },
-        {
-            "Date (Gregorian)": datetime.datetime(2024, 1, 1),
-            "test_type": "RAST",
-            "تاریخ": "1402-10-11",
-            "Peak Power (W)": 350,
-            "Average Power (W)": 250,
-            "Fatigue Index (%)": 20
-        },
-        {
-            "Date (Gregorian)": datetime.datetime(2024, 2, 1),
-            "test_type": "RAST",
-            "تاریخ": "1402-11-11",
-            "Peak Power (W)": 460,
-            "Average Power (W)": 12,
-            "Fatigue Index (%)": 55
-        },
-        {
-            "Date (Gregorian)": datetime.datetime(2024, 1, 2),
-            "test_type": "Wingate",
-            "تاریخ": "1402-10-12",
-            "Peak Power (W)": 400,
-            "Average Power (W)": 300,
-            "Fatigue Index (%)": 25
-        },
-        {
-            "Date (Gregorian)": datetime.datetime(2024, 2, 2),
-            "test_type": "Wingate",
-            "تاریخ": "1402-11-12",
-            "Peak Power (W)": 500,
-            "Average Power (W)": 350,
-            "Fatigue Index (%)": 60
-        },
-        {
-            "Date (Gregorian)": datetime.datetime(2024, 3, 2),
-            "test_type": "Wingate",
-            "تاریخ": "1402-12-12",
-            "Peak Power (W)": 450,
-            "Average Power (W)": 300,
-            "Fatigue Index (%)": 75
-        },
-        {
-            "Date (Gregorian)": datetime.datetime(2024, 1, 3),
-            "test_type": "Burpee",
-            "تاریخ": "1402-10-13",
-            "Total Burpees": 40,
-            "Average Anaerobic Power (W)": 50
-        },
-        {
-            "Date (Gregorian)": datetime.datetime(2024, 2, 3),
-            "test_type": "Burpee",
-            "تاریخ": "1402-11-13",
-            "Total Burpees": 65,
-            "Average Anaerobic Power (W)": 67
-        }
-    ]
+from faker import Faker
+@st.cache_data
+def get_profile_dataset(number_of_items: int = 20, seed: int = 0) -> pd.DataFrame:
+    new_data = []
 
-# Convert Data to DataFrame
-df_tests = pd.DataFrame(st.session_state.anaerobic_test_data)
+    fake = Faker()
+    np.random.seed(seed)
+    Faker.seed(seed)
 
-# Sidebar for Date Selection
-st.subheader("انتخاب تاریخ‌ها برای مقایسه")
+    for i in range(number_of_items):
+        profile = fake.profile()
+        new_data.append(
+            {
+                "name": profile["name"],
+                "daily_activity": np.random.rand(25),
+                "activity": np.random.randint(2, 90, size=12),
+            }
+        )
 
-# Filter Data Based on Selected Dates
-
-def filter_data(test_type):
-    filtered_data = df_tests[df_tests["test_type"] == test_type]
-
-    selected_dates = st.multiselect("تاریخ‌ها را انتخاب کنید:", options=filtered_data["تاریخ"].unique(), key=test_type)
-
-    filtered_data = df_tests[df_tests["تاریخ"].isin(selected_dates)]
-
-    return filtered_data
+    profile_df = pd.DataFrame(new_data)
+    return profile_df
 
 
-# Function to Create Radar Chart
-def create_radar_chart(data, metrics, title):
-    if data.empty:
-        st.warning("لطفاً تاریخ‌های معتبر انتخاب کنید.")
-        return
-    # Melt data for radar chart
-    melted_data = pd.melt(
-        data,
-        id_vars=["تاریخ"],
-        value_vars=metrics,
-        var_name="Metric",
-        value_name="Value"
+column_configuration = {
+    "name": st.column_config.TextColumn(
+        "Name", help="The name of the user", max_chars=100, width="medium"
+    ),
+    "activity": st.column_config.LineChartColumn(
+        "Activity (1 year)",
+        help="The user's activity over the last 1 year",
+        width="large",
+        y_min=0,
+        y_max=100,
+    ),
+    "daily_activity": st.column_config.BarChartColumn(
+        "Activity (daily)",
+        help="The user's activity in the last 25 days",
+        width="medium",
+        y_min=0,
+        y_max=1,
+    ),
+}
+
+select, compare = st.tabs(["Select members", "Compare selected"])
+
+with select:
+    st.header("All members")
+
+    df = get_profile_dataset()
+
+    event = st.dataframe(
+        df,
+        column_config=column_configuration,
+        use_container_width=True,
+        hide_index=True,
+        on_select="rerun",
+        selection_mode="multi-row",
     )
 
-    # Create radar chart
-    fig = px.line_polar(
-        melted_data,
-        r="Value",
-        theta="Metric",
-        color="تاریخ",
-        line_close=True,
-        title=title
-    )
-    fig.update_traces(fill="toself")
-    st.plotly_chart(fig, use_container_width=True)
-
-# Tabs for Each Test
-tab1, tab2, tab3, tab4 = st.tabs(["Performance Decrease", "RAST", "Wingate", "Burpee"])
-
-# Performance Decrease Radar Chart
-with tab1:
-    st.subheader("Radar Chart: Performance Decrease")
-    performance_data = filter_data(test_type="Performance Decrease")
-    create_radar_chart(
-        performance_data,
-        metrics=["Performance Decrease (%)"],
-        title="Radar Chart: Performance Decrease (%)"
+    st.header("Selected members")
+    people = event.selection.rows
+    filtered_df = df.iloc[people]
+    st.dataframe(
+        filtered_df,
+        column_config=column_configuration,
+        use_container_width=True,
     )
 
-# RAST Radar Chart
-with tab2:
-    st.subheader("Radar Chart: RAST")
-    rast_data = filter_data(test_type="RAST")
-    create_radar_chart(
-        rast_data,
-        metrics=["Peak Power (W)", "Average Power (W)", "Fatigue Index (%)"],
-        title="Radar Chart: RAST Test"
-    )
+with compare:
+    activity_df = {}
+    for person in people:
+        activity_df[df.iloc[person]["name"]] = df.iloc[person]["activity"]
+    activity_df = pd.DataFrame(activity_df)
 
-# Wingate Radar Chart
-with tab3:
-    st.subheader("Radar Chart: Wingate")
-    wingate_data = filter_data(test_type="Wingate")
-    create_radar_chart(
-        wingate_data,
-        metrics=["Peak Power (W)", "Average Power (W)", "Fatigue Index (%)"],
-        title="Radar Chart: Wingate Test"
-    )
+    daily_activity_df = {}
+    for person in people:
+        daily_activity_df[df.iloc[person]["name"]] = df.iloc[person]["daily_activity"]
+    daily_activity_df = pd.DataFrame(daily_activity_df)
 
-# Burpee Radar Chart
-with tab4:
-    st.subheader("Radar Chart: Burpee")
-    burpee_data = filter_data(test_type="Burpee")
-    create_radar_chart(
-        burpee_data,
-        metrics=["Total Burpees", "Average Anaerobic Power (W)"],
-        title="Radar Chart: Burpee Test"
-    )
+    if len(people) > 0:
+        st.header("Daily activity comparison")
+        st.bar_chart(daily_activity_df)
+        st.header("Yearly activity comparison")
+        st.line_chart(activity_df)
+    else:
+        st.markdown("No members selected.")
+
+@st.dialog("مشخصات ورزشکار")
+def athelthe():
+    name = st.text_input("name")
+    age = st.text_input("age")
+    gender = st.text_input("gender")
+    weight = st.text_input("weight")
+    height = st.text_input("height")
+    style = st.selectbox("style", ["free-style", "greco-roman"])
+
+    years = list(range(JalaliDate.today().year+1, 1390, -1))
+    months = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"]
+    days = list(range(1, 32))
+
+    col21, col22, col23 = st.columns(3,vertical_alignment="top")
+
+    with col21:
+        selected_year = st.selectbox("سال", years, index=years.index(JalaliDate.today().year))
+    with col22:
+        selected_month = st.selectbox("ماه", months, index=JalaliDate.today().month - 1)
+    with col23:
+        selected_day = st.selectbox("روز", days, index=JalaliDate.today().day - 1)
+
+    if st.button("Submit"):
+        st.session_state.athelthe = ({
+            "name": name,
+            "age": age,
+            "gender": gender,
+            "weight": weight,
+            "height": height,
+            "style": style
+            })
+        st.rerun()
+
+# if "athelthe" not in st.session_state:
+st.write("ورزشکار جدید اضافه کنید")
+if st.button("ورزشکار جدید"):
+    athelthe()
+
+if st.session_state.athelthe:
+ 
+    f"You athelthe: {st.session_state.athelthe['name']}"
+    st.json(st.session_state.athelthe)
+
+else:
+    st.session_state.athelthe = {}

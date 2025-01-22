@@ -1,18 +1,11 @@
 import streamlit as st
 import pandas as pd
 
+# Define formulas for 1RM calculation
 def epley_1rm(weight, reps):
-    """
-    Calculate 1RM using the Epley formula.
-    1RM = W * (1 + 0.0333 * R)
-    """
-    return weight * (1 + 0.0333 * reps)
+    return weight * (1 + reps / 30)
 
 def brzycki_1rm(weight, reps):
-    """
-    Calculate 1RM using the Brzycki formula.
-    1RM = W / (1.0278 - 0.0278 * R)
-    """
     denominator = 1.0278 - 0.0278 * reps
     if denominator <= 0:
         return 0  # Avoid division by zero or negative
@@ -44,18 +37,6 @@ rep_percentage_data = [
     (30,   40),
     (35,   35),
 ]
-
-# -----------------
-# Streamlit App
-# -----------------
-
-st.title("One-Rep Max Calculator & Percentage Breakdown")
-
-st.write("""
-This tool calculates your estimated 1RM using either the Epley or Brzycki formula,
-and provides a reference table showing how much weight corresponds to each rep range
-(roughly 35% to 100% of 1RM).
-""")
 
 # Get user inputs
 weight = st.number_input("Weight lifted (kg)", min_value=0.0, value=80.0)
@@ -89,9 +70,3 @@ df = pd.DataFrame(df_data)
 
 st.subheader("Approximate Rep-to-Weight Breakdown")
 st.dataframe(df,hide_index=True)
-
-st.write("""
-**How to use this table**:  
-- Each row shows a *rough* rep count and the corresponding percentage of your 1RM.  
-- The "Weight (kg)" column approximates how much you might lift if you aim for that rep range.
-""")

@@ -6,13 +6,14 @@ from datetime import datetime
 from components.metrics import EXERCISE_OPTIONS, REP_PERCENTAGE_DATA
 from persiantools.jdatetime import JalaliDate
 import jdatetime
+import plotly.graph_objects as go
 
 
 
 # Main Content with Tabs
-tab1, tab2 = st.tabs(["قدرت نسبی","📋 تاریخچه"])
 if 'num_rows' not in st.session_state:
     st.session_state.num_rows = 1
+
 if 'strength_data' not in st.session_state:
     st.session_state.strength_data = []
 
@@ -52,128 +53,123 @@ def brzycki_1rm(weight, reps):
         return 0  # Avoid division by zero or negative
     return weight / denominator
 
+def bar_line_plot(x , y):
+       # Create Bar Plot
+        bar_trace = go.Bar(
+            x=x,
+            y=y,
+            name="Bar Plot",
+            marker=dict(color='rgb(58, 71, 80)')
+        )
+
+        # Create Line Plot
+        line_trace = go.Scatter(
+            x=x,
+            y=y,
+            mode='lines+markers',
+            name="Line Plot",
+            line=dict(color='rgb(255, 100, 100)', width=2)
+        )
+
+        # Combine both traces in a single figure
+        fig = go.Figure(data=[bar_trace, line_trace])
+
+        # Set layout properties
+        fig.update_layout(
+            title="Bar Plot with Line Overlay",
+            xaxis_title="Category",
+            yaxis_title="Value",
+            barmode='group',
+            template="plotly_white"
+        )
+
+        # Display the plot in Streamlit
+        st.plotly_chart(fig)
+
+
 # Tab 1: Metrics Visualization
-with tab1:
-    # Sample Data
+
+
+
+
+with st.form("strength_form", enter_to_submit=False, clear_on_submit=False, border=True):
     data = []
 
     df_data = pd.DataFrame(data)
-
     athlete_weigth = st.session_state.record_data["athlete_weight"]
-    athlete_name = st.session_state.record_data["athlete_name"] 
-    today = st.session_state.record_data["date"]
-    
-    with st.form("strength_form", enter_to_submit=False, clear_on_submit=False, border=True):
-        col1, col2 = st.columns(2)
-        with col1:
-            exercise = st.selectbox("نام حرکت:",options=EXERCISE_OPTIONS ,key=f"exercise")
-            weight = st.number_input("وزن ورنه بلند شده:", min_value=0.0, value=80.0)
-        with col2:
-            formula = st.selectbox("فرمول محاسبه:",("Brzycki", "Epley"))
-            reps = st.number_input("تعداد تکرار تا مرز خستگی:", min_value=1, value=8)
+    athlete_name = st.session_state.record_data["athlete_name"]
 
-        # Calculate 1RM
-        if formula == "Epley":
-            estimated_1rm = epley_1rm(weight, reps)
-        else:
-            estimated_1rm = brzycki_1rm(weight, reps)
-
-        cols = st.columns(2)
-        estimate_power = round(estimated_1rm / athlete_weigth, 2)
-        submitted = st.form_submit_button("محاسبه")
-        if submitted:
-            selected_time = st.session_state.record_data["date"]
-            strength_data = [{
-                "ورزشکار": athlete_name,
-                "تاریخ": selected_time,
-                "تمرین": exercise,
-                "estimate_power": estimate_power,
-                "estimated_1rm": estimated_1rm,
-                **{f"{rep_count}": round((perc / 100.0) * estimated_1rm, 2) for rep_count, perc in rep_percentage_data}
-            }
-            ]
-            st.session_state.strength_data.append(strength_data[0])
-
-            st.success(f"قدرت نسبی در حرکت {exercise} با موفقیت ذخیره !")
-            
-            df = pd.DataFrame(st.session_state.strength_data)
-            st.dataframe(df)
-
-            st.info('برای مشاهده بیشتر به تب تاریخچه بروید.', icon="ℹ️")
-
-
-    submit = st.button("ذخیره")
-
-    if submit:
-        st.success("اطلاعات با موفقیت ذخیره شد !")
-        # Option to download as CSV
-        csv = df_data.to_csv(index=False).encode('utf-8')
-        st.download_button(
-            label="دانلود اطلاعات (CSV)",
-            data=csv,
-            file_name=f"{athlete_name}-{today}.csv",
-            mime="text/csv"
-        )                
-#     if len(df_data) > 0:
-#         # Main Content with Tabs
-#         tab1, tab2, tab3 = st.tabs(["📊 Metrics", "📅 Historical Data", "📋 Summary"])
-
-#         # Tab 1: Metrics Visualization
-#         with tab1:
-#             st.subheader("Health Metrics Visualization")
-#             fig = px.scatter(df_data, x="% of 1RM", y="Weight", color="Reps", size="Weight", hover_name="Reps")
-#             st.plotly_chart(fig, use_container_width=True)
-
-#         # Tab 2: Historical Data
-#         with tab2:
-#             st.subheader("Wrestler Data Table")
-#             st.dataframe(df_data, use_container_width=True)
-
-#         # Tab 3: Summary Charts
-#         with tab3:
-#             st.subheader("Injury Distribution")
-#             injury_fig = px.pie(df_data, names="% of 1RM", title="Injury Types Distribution")
-#             st.plotly_chart(injury_fig, use_container_width=True)
-
-# # Tab 2: Historical Data
-with tab2:
-    # Historical Bar Chart
-    if st.session_state.strength_data:
-        df_history = pd.DataFrame(st.session_state.strength_data).sort_values(by="تاریخ")
-        st.dataframe(df_history)
-
-        # Convert Gregorian to Jalali for display
-
-        # Melt the DataFrame for combining metrics
-        history_fig_melted_df = pd.melt(
-            df_history,
-            id_vars=["تاریخ"],
-            value_vars=["estimate_power"],
-            var_name="estimate_power",
-            value_name="قدرت نسبی"
-        )
-
-        # Create Grouped Bar Plot
-        history_fig = px.bar(
-            history_fig_melted_df,
-            x="تاریخ",
-            y="قدرت نسبی",
-            color="estimate_power",
-            barmode="group",
-            title="تغییرات قدرت نسبی",
-            labels={"تاریخ": "تاریخ", "قدرت نسبی": "قدرت نسبی"}
-
-        )
-        history_fig.update_layout(
-            xaxis=dict(type="category"),
-            title_x=0.5,  # Center the title
-        )
-
-        # Display the Bar Plot
-        # col1, col2 = st.columns(2)
-        # with col1:
-        st.plotly_chart(history_fig, use_container_width=True)
-
-
+    col1, col2 = st.columns(2)
+    with col1:
+        exercise = st.selectbox("نام حرکت:",options=EXERCISE_OPTIONS ,key=f"exercise")
+        weight = st.number_input("وزن ورنه بلند شده:", min_value=0.0, value=80.0)
+        day , month, year= st.columns(3)
+        with year:
+            years = list(range(JalaliDate.today().year+1, 1390, -1))
+            selected_year = st.selectbox("سال", years, index=years.index(JalaliDate.today().year) , key="year")
+        with month:
+            months = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"]
+            selected_month = st.selectbox("ماه", months, index=JalaliDate.today().month - 1 , key="month")
+        with day:
+            days = list(range(1, 32))
+            selected_day = st.selectbox("روز", days, index=JalaliDate.today().day - 1 , key="day")
+    record_date = JalaliDate(selected_year, months.index(selected_month) + 1, selected_day, locale="fa")
+    gregorian_date = record_date.to_gregorian()
+    with col2:
+        formula = st.selectbox("فرمول محاسبه:",("Brzycki", "Epley"))
+        reps = st.number_input("تعداد تکرار تا مرز خستگی:", min_value=1, value=8)
+    # Calculate 1RM
+    if formula == "Epley":
+        estimated_1rm = epley_1rm(weight, reps)
     else:
-        st.info("هنوز داده‌ای ثبت نشده است.")
+        estimated_1rm = brzycki_1rm(weight, reps)
+        
+    cols = st.columns(2)
+    estimate_power = round(estimated_1rm / athlete_weigth, 2)
+    submitted = st.form_submit_button("محاسبه")
+    calcuted_data = [(rep_count, perc, round((perc / 100.0) * estimated_1rm, 2)) for rep_count, perc in rep_percentage_data]
+    if submitted:
+        selected_time = record_date
+        exercise_data = [{
+            "تمرین": exercise,
+            "estimate_power": estimate_power,
+            "estimated_1rm": round(estimated_1rm, 2),
+            "calcuted_data": calcuted_data
+        }]
+        
+        st.session_state.strength_data.append(exercise_data[0])
+
+        st.success(f"قدرت نسبی در حرکت {exercise} با موفقیت ذخیره !")
+        
+        df = pd.DataFrame(st.session_state.strength_data)
+        st.dataframe(df)
+
+        st.info('برای مشاهده بیشتر به تب تاریخچه بروید.', icon="ℹ️")
+        
+
+
+submit = st.button("ذخیره")
+
+if submit:
+    st.success("اطلاعات با موفقیت ذخیره شد !")
+    # Option to download as CSV
+    csv = df_data.to_csv(index=False).encode('utf-8')
+    st.download_button(
+        label="دانلود اطلاعات (CSV)",
+        data=csv,
+        file_name=f"{athlete_name}.csv",
+        mime="text/csv"
+    )                
+
+
+if st.session_state.strength_data:
+    df_history = pd.DataFrame(st.session_state.strength_data)
+    st.dataframe(df_history)
+
+    bar_line_plot(x=df_history["test_date"], y=df_history["estimate_power"])
+
+    
+
+
+else:
+    st.info("هنوز داده‌ای ثبت نشده است.")

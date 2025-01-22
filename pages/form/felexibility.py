@@ -95,7 +95,10 @@ with tab2:
             labels={"تاریخ": "تاریخ", "Distance (centemeter)": "مدت زمان (ثانیه)", "Distance Type": "نوع آزمون"}
 
         )
-
+        history_fig.update_layout(
+            xaxis=dict(type="category"),
+            title_x=0.5,  # Center the title
+        )
         # Display the Bar Plot
         st.plotly_chart(history_fig, use_container_width=True)
 

@@ -40,7 +40,7 @@ with tab1:
                 "دیپ پارالل": dip_reps
             }]
 
-  
+
     
 
             st.session_state.muscle_stamina_test_data.append(muscle_stamina_test_data[0])

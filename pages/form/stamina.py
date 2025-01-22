@@ -21,6 +21,9 @@ def calculate_vo2max_cooper(distance_km):
     distance_meters = distance_km * 1000
     return round((distance_meters - 504.9) / 44.73, 2)
 
+athlete_weigth = st.session_state.record_data["athlete_weight"]
+athlete_name = st.session_state.record_data["athlete_name"] 
+today = st.session_state.record_data["date"]
 # Tab 1: 6-Minute Test
 with tab1:
     st.subheader("محاسبه VO2Max: 6-Minute Test")
@@ -31,9 +34,17 @@ with tab1:
     
     if submitted_6min and distance_6min > 0:
         vo2max_6min = calculate_vo2max_6min(distance_6min)
-        current_time = JalaliDate.to_jalali(datetime.datetime.now()).strftime("%Y-%m-%d %H:%M:%S")
-        st.session_state.vo2max_data.append({"تاریخ": current_time, "VO2Max": vo2max_6min, "Test Type": "6-Minute"})
+        selected_time = st.session_state.record_data["date"]
+        st.session_state.vo2max_data.append(
+            {
+                "ورزشکار": athlete_name,
+                "تاریخ": selected_time,
+                "Test Type": "6-Minute",
+                "VO2Max": vo2max_6min, 
+            }
+        )
         st.metric(label="VO2Max (اکنون)", value=vo2max_6min)
+       
 
 # Tab 2: Cooper Test
 with tab2:
@@ -46,7 +57,13 @@ with tab2:
     if submitted_cooper and distance_cooper > 0:
         vo2max_cooper = calculate_vo2max_cooper(distance_cooper)
         current_time = JalaliDate.to_jalali(datetime.datetime.now()).strftime("%Y-%m-%d %H:%M:%S")
-        st.session_state.vo2max_data.append({"تاریخ": current_time, "VO2Max": vo2max_cooper, "Test Type": "Cooper"})
+        st.session_state.vo2max_data.append(
+            {
+                "ورزشکار": athlete_name,
+                "تاریخ": current_time, 
+                "Test Type": "Cooper",
+                "VO2Max": vo2max_cooper, 
+                })
         st.metric(label="VO2Max (اکنون)", value=vo2max_cooper)
 
 # Tab 3: History
