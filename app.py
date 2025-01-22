@@ -90,9 +90,6 @@ orm = st.Page(
 athlethes = st.Page(
     "pages/athlethe/list.py", title="ورزشکاران", icon=":material/notification_important:"
 )
-overview = st.Page(
-    "pages/athlethe/overview.py", title="overview", icon=":material/notification_important:"
-)
 
 
 # Title
@@ -104,7 +101,7 @@ overview = st.Page(
 
 pg = st.navigation(
     {
-        "ورزشکاران": [athlethes, overview],
+        "ورزشکاران": [athlethes],
         "تست ها:": [strength, stamina, anaerobic, agility, reaction, felexibility, power, muscle_stamina],
         "پرسشنامه ها:": [sleep, stress_anxiety, blood_urine],
         "گزارش": [anaerobic_report, orm],
