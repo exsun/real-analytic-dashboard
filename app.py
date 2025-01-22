@@ -5,6 +5,10 @@ from streamlit_nej_datepicker import datepicker_component, Config
 from persiantools.jdatetime import JalaliDate
 from datetime import datetime
 import pytz
+import pandas as pd
+from utils.database import list_athlete, list_athlete_history
+from st_supabase_connection import SupabaseConnection, execute_query
+
 
 st.set_page_config(
     page_title="ارزیابی عملکرد کشتی",
@@ -14,11 +18,33 @@ st.set_page_config(
     menu_items={}
 )
 
+try:
+    st.session_state["client"] = st.connection(
+        name="supabase",
+        type=SupabaseConnection,
+        ttl=None,
+    )
+    st.session_state["initialized"] = True
+except Exception as e:
+    st.error(
+        f"""Client initialization failed
+        {e}""",
+        icon="❌",
+    )
+    st.session_state["initialized"] = False
+
+
+if "record_data" not in st.session_state:
+    st.session_state.record_data = {}
+
+
 def local_css(file_name):
     with open(file_name) as f:
         st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
 local_css("assets/styles/custom.css")
+
+
 
 
 # Widgets shared by all the pages
@@ -58,86 +84,35 @@ blood_urine = st.Page(
 anaerobic_report = st.Page(
     "pages/report/anaerobic_report.py", title="بی هوازی", icon=":material/sleep:"
 )
-# orm = st.Page(
-#     "pages/form/orm.py", title="orm", icon=":material/notification_important:"
-# )
-# dashboard = st.Page(
-#     "pages/dashboard.py", title="قدرت", icon=":material/notification_important:"
-# )
+orm = st.Page(
+    "pages/form/orm.py", title="orm", icon=":material/notification_important:"
+)
+athlethes = st.Page(
+    "pages/athlethe/list.py", title="ورزشکاران", icon=":material/notification_important:"
+)
+overview = st.Page(
+    "pages/athlethe/overview.py", title="overview", icon=":material/notification_important:"
+)
 
 
 # Title
-st.title("سامانه پایش کشتی گیران ایران")
+# st.title("سامانه پایش کشتی گیران آزاد")
 
 # Sidebar Jalali Date Input
 
 
 
-if "record_data" not in st.session_state:
-    st.session_state.record_data = {}
+pg = st.navigation(
+    {
+        "ورزشکاران": [athlethes, overview],
+        "تست ها:": [strength, stamina, anaerobic, agility, reaction, felexibility, power, muscle_stamina],
+        "پرسشنامه ها:": [sleep, stress_anxiety, blood_urine],
+        "گزارش": [anaerobic_report, orm],
 
-col1, col2 = st.columns(2)
-    
-with col1:
-    col12, col13 = st.columns(2,vertical_alignment="top")
-    with col12:
-        athlete_name = st.text_input("نام ورزشکار", key="athlete_name")
-    with col13:
-        athlete_weight = st.number_input("وزن ورزشکار", key="athlete_weight")
+    }
+)
 
-
-
-with col2:
-    years = list(range(JalaliDate.today().year+1, 1390, -1))
-    months = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"]
-    days = list(range(1, 32))
-
-    col21, col22, col23 = st.columns(3,vertical_alignment="top")
-
-    with col21:
-        selected_year = st.selectbox("سال", years, index=years.index(JalaliDate.today().year))
-    with col22:
-        selected_month = st.selectbox("ماه", months, index=JalaliDate.today().month - 1)
-    with col23:
-        selected_day = st.selectbox("روز", days, index=JalaliDate.today().day - 1)
-
-    # Convert to Jalali Date
-    record_date = JalaliDate(selected_year, months.index(selected_month) + 1, selected_day)
-
-    # Convert to Gregorian for internal processing (if needed)
-    gregorian_date = record_date.to_gregorian()
-
-    # Display Selected Jalali Date
-#     if not record_date:
-#         # st.session_state.record_date = None
-
-#     else:
-#         st.subheader(record_date)
-#         st.session_state.record_data["date"] = record_date
-# if not athlete_name:
-
-    
-
-# else:
-st.session_state.record_data["date"] = record_date
-st.session_state.record_data["athlete_name"] = athlete_name
-st.session_state.record_data["athlete_weight"] = athlete_weight
-
-# with col1:
-#     st.subheader(athlete_name)
-# with col2:
-#     st.subheader(record_date)
-if athlete_name and athlete_weight != 0.0:
-    pg = st.navigation(
-        {
-            "تست ها:": [strength, stamina, anaerobic, agility, reaction, felexibility, power, muscle_stamina],
-            "پرسشنامه ها:": [sleep, stress_anxiety, blood_urine],
-            "گزارش": [anaerobic_report]
-
-        }
-    )
-
-    pg.run()
+pg.run()
 
 
 
