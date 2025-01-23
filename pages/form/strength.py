@@ -7,9 +7,9 @@ from components.metrics import EXERCISE_OPTIONS, REP_PERCENTAGE_DATA
 from persiantools.jdatetime import JalaliDate
 import jdatetime
 import plotly.graph_objects as go
-
-
-
+from utils.database import list_athlete, list_athlete_history, insert_test_result
+import time
+import json
 # Main Content with Tabs
 if 'num_rows' not in st.session_state:
     st.session_state.num_rows = 1
@@ -89,35 +89,66 @@ def bar_line_plot(x , y):
 
 # Tab 1: Metrics Visualization
 
+# Using pytz
+import pytz
 
+utc_now = datetime.utcnow().replace(tzinfo=pytz.utc)
+# tehran_time = utc_now.astimezone(tehran_tz)
+print("UTC Time:", utc_now)
+# print("Tehran Time:", tehran_time)
+
+# Using zoneinfo
+from zoneinfo import ZoneInfo
 
 
 with st.form("strength_form", enter_to_submit=False, clear_on_submit=False, border=True):
-    data = []
+    st.subheader("تست قدرت نسبی")
 
-    df_data = pd.DataFrame(data)
-    athlete_weigth = st.session_state.record_data["athlete_weight"]
-    athlete_name = st.session_state.record_data["athlete_name"]
+    df_data =  []
 
     col1, col2 = st.columns(2)
     with col1:
-        exercise = st.selectbox("نام حرکت:",options=EXERCISE_OPTIONS ,key=f"exercise")
-        weight = st.number_input("وزن ورنه بلند شده:", min_value=0.0, value=80.0)
+        athletes = pd.DataFrame(list_athlete())
+        
+        athlete_name = st.selectbox("ورزشکار", 
+            athletes["name"], 
+            placeholder="انتخاب کنید",
+            index=None
+        )
+        athlete_id = athletes.loc[athletes["name"] == athlete_name, "athlete_id"].values[0] if not athletes.loc[athletes["name"] == athlete_name, "athlete_id"].empty else ""
+        athlete_weight = athletes.loc[athletes["name"] == athlete_name, "weight"].values[0] if not athletes.loc[athletes["name"] == athlete_name, "weight"].empty else ""
+
+        st.session_state.record_data["athlete_weight"] = athlete_weight
+        st.session_state.record_data["athlete_name"] = athlete_name
+        
+        exercise = st.selectbox("نام حرکت:",
+                                options=EXERCISE_OPTIONS ,
+                                placeholder="انتخاب کنید",
+                                index=None,
+                                key=f"exercise"
+                                )
+        
+        weight = st.number_input("وزن ورنه بلند شده:", 
+                                min_value=0.0,
+                                placeholder="انتخاب کنید",
+                                step=2.5,
+                                value=80.0)
+        reps = st.number_input("تعداد تکرار تا مرز خستگی:", min_value=1, value=8)
+        
+        formula = st.selectbox("فرمول محاسبه:",("Brzycki", "Epley"))
+        
         day , month, year= st.columns(3)
         with year:
             years = list(range(JalaliDate.today().year+1, 1390, -1))
-            selected_year = st.selectbox("سال", years, index=years.index(JalaliDate.today().year) , key="year")
+            selected_year = st.selectbox("", years, index=years.index(JalaliDate.today().year) , key="year")
         with month:
             months = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"]
-            selected_month = st.selectbox("ماه", months, index=JalaliDate.today().month - 1 , key="month")
+            selected_month = st.selectbox("", months, index=JalaliDate.today().month - 1 , key="month")
         with day:
             days = list(range(1, 32))
-            selected_day = st.selectbox("روز", days, index=JalaliDate.today().day - 1 , key="day")
-    record_date = JalaliDate(selected_year, months.index(selected_month) + 1, selected_day, locale="fa")
-    gregorian_date = record_date.to_gregorian()
-    with col2:
-        formula = st.selectbox("فرمول محاسبه:",("Brzycki", "Epley"))
-        reps = st.number_input("تعداد تکرار تا مرز خستگی:", min_value=1, value=8)
+            selected_day = st.selectbox("تاریخ", days, index=JalaliDate.today().day - 1 , key="day")
+        record_date = JalaliDate(selected_year, months.index(selected_month) + 1, selected_day, locale="fa")
+        gregorian_date = record_date.to_gregorian()
     # Calculate 1RM
     if formula == "Epley":
         estimated_1rm = epley_1rm(weight, reps)
@@ -125,51 +156,82 @@ with st.form("strength_form", enter_to_submit=False, clear_on_submit=False, bord
         estimated_1rm = brzycki_1rm(weight, reps)
         
     cols = st.columns(2)
-    estimate_power = round(estimated_1rm / athlete_weigth, 2)
+    
+    
     submitted = st.form_submit_button("محاسبه")
     calcuted_data = [(rep_count, perc, round((perc / 100.0) * estimated_1rm, 2)) for rep_count, perc in rep_percentage_data]
     if submitted:
-        selected_time = record_date
-        exercise_data = [{
-            "تمرین": exercise,
-            "estimate_power": estimate_power,
-            "estimated_1rm": round(estimated_1rm, 2),
-            "calcuted_data": calcuted_data
-        }]
-        
-        st.session_state.strength_data.append(exercise_data[0])
+        with st.spinner('در حال محاسبه ...'):
+            time.sleep(2.5)
+        if athlete_name and exercise:
+            estimate_power = round(estimated_1rm / athlete_weight, 2)
+            current_date = JalaliDate.to_jalali(datetime.now(ZoneInfo("UTC")).astimezone(ZoneInfo("Asia/Tehran"))).strftime("%Y-%m-%d %H:%M:%S")
+            selected_time = record_date
+            exercise_data = {
+                "exercise": exercise,
+                "estimate_power": estimate_power,
+                "estimated_1rm": round(estimated_1rm, 2),
+                "calcuted_data": f"{calcuted_data}"
+            }
+            # exercise_data = json.dumps(exercise_data)
 
-        st.success(f"قدرت نسبی در حرکت {exercise} با موفقیت ذخیره !")
-        
-        df = pd.DataFrame(st.session_state.strength_data)
-        st.dataframe(df)
+            test_result = {
+                "athlete_id": int(athlete_id),
+                "raw_data": exercise_data,
+                "test_name": "قدرت نسبی",
+                "test_category": "قدرت",
+                "test_date": jdatetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "gregorian_date": datetime.now(ZoneInfo("UTC")).astimezone(ZoneInfo("Asia/Tehran")).strftime("%Y-%m-%d %H:%M:%S")
+            }
+          
 
-        st.info('برای مشاهده بیشتر به تب تاریخچه بروید.', icon="ℹ️")
-        
+            for rep_count, perc in rep_percentage_data:
+
+                df_data.append({
+                    "% of 1RM": f"{perc}%",
+                    "Weight (kg)": round((perc / 100.0) * estimated_1rm, 2),
+                    "Reps": rep_count
+                })
+
+            st.session_state.strength_data.append(test_result)
+
+            st.success(f"قدرت نسبی در حرکت {exercise} با موفقیت ذخیره !")
+            
+            df = pd.DataFrame([exercise_data])
+
+            st.dataframe(df)
+
+            st.dataframe(df_data)
+            # st.info('برای مشاهده بیشتر به تب تاریخچه بروید.', icon="ℹ️")
+            
+            insert_test_result(test_result)
+        else:
+            st.warning("لطفا فرم را کامل کنید !")
 
 
 submit = st.button("ذخیره")
 
-if submit:
-    st.success("اطلاعات با موفقیت ذخیره شد !")
-    # Option to download as CSV
-    csv = df_data.to_csv(index=False).encode('utf-8')
-    st.download_button(
-        label="دانلود اطلاعات (CSV)",
-        data=csv,
-        file_name=f"{athlete_name}.csv",
-        mime="text/csv"
-    )                
 
 
-if st.session_state.strength_data:
-    df_history = pd.DataFrame(st.session_state.strength_data)
-    st.dataframe(df_history)
+# if len(st.session_state.strength_data) > 1:
+#     print(st.session_state.strength_data)
+#     df_history = pd.DataFrame(st.session_state.strength_data)
+#     st.dataframe(df_history)
 
-    bar_line_plot(x=df_history["test_date"], y=df_history["estimate_power"])
+# if submit:
+#     st.success("اطلاعات با موفقیت ذخیره شد !")
+#     # Option to download as CSV
+#     csv = df_history.to_csv(index=False).encode('utf-8')
+#     st.download_button(
+#         label="دانلود اطلاعات (CSV)",
+#         data=csv,
+#         file_name=f"{athlete_name}.csv",
+#         mime="text/csv"
+#     )                
+#     # bar_line_plot(x=df_history["test_date"], y=df_history["estimate_power"])
 
     
 
 
-else:
-    st.info("هنوز داده‌ای ثبت نشده است.")
+# else:
+#     st.info("هنوز داده‌ای ثبت نشده است.")
