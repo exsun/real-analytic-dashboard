@@ -4,7 +4,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 from st_supabase_connection import execute_query
-from utils.database import list_athlete, list_athlete_history
+from utils.database import listAthletes, listAthletesHistory, listAthleteRecordsByCategory
 from persiantools.jdatetime import JalaliDate
 from datetime import datetime
 
@@ -15,43 +15,7 @@ import numpy as np
 from datetime import date, timedelta
 import string
 import time
-
-
-def bar_line_plot(x , y, xaxis_title, yaxis_title):
-       # Create Bar Plot
-        bar_trace = go.Bar(
-            x=x,
-            y=y,
-            name="Bar Plot",
-            marker=dict(color='rgb(58, 71, 80)')
-        )
-
-        # Create Line Plot
-        line_trace = go.Scatter(
-            x=x,
-            y=y,
-            mode='lines+markers',
-            name="Line Plot",
-            line=dict(color='rgb(255, 100, 100)', width=2)
-        )
-
-        # Combine both traces in a single figure
-        fig = go.Figure(data=[bar_trace, line_trace])
-
-        # Set layout properties
-        fig.update_layout(
-            title="Bar Plot with Line Overlay",
-            xaxis_title=xaxis_title,
-            yaxis_title=yaxis_title,
-            barmode='group',
-            template="plotly_white",
-            xaxis=dict(type="category"),
-            title_x=0.5,  # Center the title
-        )
-            
-
-        # Display the plot in Streamlit
-        st.plotly_chart(fig)
+from components.charts import bar_line_plot
 
 
 def strenght_history(results):
@@ -84,17 +48,15 @@ def show_athlete_results():
 
     st.session_state.record_data["change"] = False
     with col1:
-        athletes = pd.DataFrame(list_athlete())
+        athletes = pd.DataFrame(listAthletes())
         athlete_name = st.selectbox("ورزشکار", 
                         athletes["name"], 
                         placeholder="انتخاب کنید"
         )
 
         athlete_id = athletes.loc[athletes["name"] == athlete_name, "athlete_id"].values[0] if not athletes.loc[athletes["name"] == athlete_name, "athlete_id"].empty else ""
-        # print("result",list_athlete_history(athlete_id))
-        results = pd.DataFrame(list_athlete_history(athlete_id)).sort_values(by='test_date')  
-        # print(results)
-        # results["timestamp"] = pd.to_datetime(results["gregorian_date"])
+        results = pd.DataFrame(listAthleteRecordsByCategory(athlete_id, category="قدرت"))
+
         results["date"] = pd.to_datetime(results["gregorian_date"])
 
         athlete_weight = athletes.loc[athletes["name"] == athlete_name, "weight"].values[0] if not athletes.loc[athletes["name"] == athlete_name, "weight"].empty else ""
@@ -112,7 +74,7 @@ def show_athlete_results():
                             ]
         # print(results[results.test_category == "قدرت"])
         strenght_history(results[results.test_category == "قدرت"])
-
+        
 
     # st.subheader(f"تاریخ منتخب از {record_date['from']:%y/%m/%d} تا {record_date['to']:%y/%m/%d}")
 
