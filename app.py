@@ -6,7 +6,6 @@ from persiantools.jdatetime import JalaliDate
 from datetime import datetime
 import pytz
 import pandas as pd
-from utils.database import list_athlete, list_athlete_history
 from st_supabase_connection import SupabaseConnection, execute_query
 
 
