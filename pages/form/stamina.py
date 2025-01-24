@@ -4,9 +4,13 @@ import plotly.express as px
 import pandas as pd
 import datetime
 from persiantools.jdatetime import JalaliDate
+from components.charts import bar_line_plot
+from utils.database import listAthletes, listAthletesHistory, insertRecord, listAthleteRecordsByCategory, listAthleteRecordsByCategoryByName, listAthleteRecordsByName
+from persiantools.jdatetime import JalaliDate, JalaliDateTime
+import jdatetime
+from zoneinfo import ZoneInfo
+import time
 
-
-tab1, tab2, tab3 = st.tabs(["۶ دقیقه", "Cooper", "📋 گزارش"])
 
 # Initialize session state for VO2Max data if not already set
 if "vo2max_data" not in st.session_state:
@@ -21,67 +25,153 @@ def calculate_vo2max_cooper(distance_km):
     distance_meters = distance_km * 1000
     return round((distance_meters - 504.9) / 44.73, 2)
 
-athlete_weigth = st.session_state.record_data["athlete_weight"]
-athlete_name = st.session_state.record_data["athlete_name"] 
-today = st.session_state.record_data["date"]
+
+
+st.header("استقامت")
+athletes = pd.DataFrame(listAthletes())
+athlete_name = st.selectbox("ورزشکار", 
+    athletes["name"], 
+    placeholder="انتخاب کنید",
+)
+athlete_id = athletes.loc[athletes["name"] == athlete_name, "athlete_id"].values[0] if not athletes.loc[athletes["name"] == athlete_name, "athlete_id"].empty else ""
+
+tab1, tab2, tab3 = st.tabs(["۶ دقیقه", "Cooper", "📋 گزارش"])
+
 # Tab 1: 6-Minute Test
 with tab1:
-    st.subheader("محاسبه VO2Max: 6-Minute Test")
-    with st.form("6min_form", clear_on_submit=False, enter_to_submit=False):
-        distance_6min = st.number_input("مسافت طی شده (کیلومتر)", min_value=0.0, step=0.01, key="distance_6min")
-        record_type = st.selectbox("آزمون", options=["pre-test","post-test"])
-        submitted_6min = st.form_submit_button("محاسبه")
-    
-    if submitted_6min and distance_6min > 0:
-        vo2max_6min = calculate_vo2max_6min(distance_6min)
-        selected_time = st.session_state.record_data["date"]
-        st.session_state.vo2max_data.append(
-            {
-                "ورزشکار": athlete_name,
-                "تاریخ": selected_time,
-                "Test Type": "6-Minute",
-                "VO2Max": vo2max_6min, 
+    st.subheader("تست ۶ دقیقه")
+
+    col1, col2 = st.columns(2)
+    with col1:
+        with st.form("6min_form", clear_on_submit=False, enter_to_submit=False):
+        
+
+            distance_6min = st.number_input("مسافت طی شده (کیلومتر)", min_value=0.0, step=0.01, key="distance_6min")
+            record_type = st.selectbox("آزمون", options=["pre-test","post-test"])
+            day , month, year= st.columns(3)
+            with year:
+                years = list(range(JalaliDate.today().year+1, 1390, -1))
+                selected_year = st.selectbox("", years, index=years.index(JalaliDate.today().year) , key="year")
+            with month:
+                months = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"]
+                selected_month = st.selectbox("", months, index=JalaliDate.today().month - 1 , key="month")
+            with day:
+                days = list(range(1, 32))
+                selected_day = st.selectbox("تاریخ", days, index=JalaliDate.today().day - 1 , key="day")
+            selected_time = st.time_input("زمان", datetime.time(8, 45))
+
+            record_date = JalaliDateTime(selected_year, months.index(selected_month) + 1, selected_day, locale="en")
+            gregorian_date = record_date.to_gregorian()
+            
+            record_date = record_date.strftime("%Y-%m-%d") + " " + selected_time.strftime("%H:%M:%S")
+            gregorian_date = gregorian_date.strftime("%Y-%m-%d")  + " " + selected_time.strftime("%H:%M:%S")
+
+
+            submitted_6min = st.form_submit_button("محاسبه")
+        
+        if submitted_6min and distance_6min > 0:
+            with st.spinner('در حال محاسبه ...'):
+                time.sleep(2.5)
+            vo2max = calculate_vo2max_6min(distance_6min)
+            exercise_data = {
+                "distance_6min": "6-Minute",
+                "vo2max": vo2max,
+            }       
+            new_record = {
+                "athlete_id": int(athlete_id),
+                "raw_data": exercise_data,
+                "test_name": "۶-دقیقه",
+                "test_category": "استقامت",
+                "test_date": record_date,
+                "gregorian_date": gregorian_date
             }
-        )
-        st.metric(label="VO2Max (اکنون)", value=vo2max_6min)
-       
+            st.metric(label="VO2Max (اکنون)", value=vo2max)
+            
+            insertRecord(new_record)
+            
+    with col2:
+        sixmin_records = pd.DataFrame(listAthleteRecordsByName(athlete_id, test_name="۶-دقیقه"))
+        if not sixmin_records.empty:
+            sixmin_records['vo2max'] = sixmin_records['raw_data'].apply(lambda x: x['vo2max'])
+
+            bar_line_plot(x=sixmin_records["test_date"], y=sixmin_records["vo2max"], xaxis_title="تاریخ" ,yaxis_title="VO2max", title="6-min-vo2max records")
+        else:
+            st.info("هنوز داده‌ای ثبت نشده است.")
 
 # Tab 2: Cooper Test
 with tab2:
-    st.subheader("محاسبه VO2Max: Cooper Test")
-    with st.form("cooper_form", clear_on_submit=False):
-        distance_cooper = st.number_input("مسافت طی شده (کیلومتر)", min_value=0.0, step=0.01, key="distance_cooper")
-        record_type = st.selectbox("آزمون", options=["pre-test","post-test"])
-        submitted_cooper = st.form_submit_button("محاسبه")
-    
-    if submitted_cooper and distance_cooper > 0:
-        vo2max_cooper = calculate_vo2max_cooper(distance_cooper)
-        current_time = JalaliDate.to_jalali(datetime.datetime.now()).strftime("%Y-%m-%d %H:%M:%S")
-        st.session_state.vo2max_data.append(
-            {
-                "ورزشکار": athlete_name,
-                "تاریخ": current_time, 
-                "Test Type": "Cooper",
-                "VO2Max": vo2max_cooper, 
-                })
-        st.metric(label="VO2Max (اکنون)", value=vo2max_cooper)
+    st.subheader("تست cooper")
 
+    col1, col2 = st.columns(2)
+    with col1:
+        with st.form("cooper_form", clear_on_submit=False, enter_to_submit=False):
+        
+         
+            distance_cooper = st.number_input("مسافت طی شده (کیلومتر)", min_value=0.0, step=0.01, key="distance_cooper")
+            record_type = st.selectbox("آزمون", options=["pre-test","post-test"])
+            day , month, year= st.columns(3)
+            with year:
+                years = list(range(JalaliDate.today().year+1, 1390, -1))
+                selected_year = st.selectbox("", years, index=years.index(JalaliDate.today().year))
+            with month:
+                months = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"]
+                selected_month = st.selectbox("", months, index=JalaliDate.today().month - 1 )
+            with day:
+                days = list(range(1, 32))
+                selected_day = st.selectbox("تاریخ", days, index=JalaliDate.today().day - 1 )
+            selected_time = st.time_input("زمان", datetime.datetime.now().time())
+
+            record_date = JalaliDateTime(selected_year, months.index(selected_month) + 1, selected_day, locale="en")
+            gregorian_date = record_date.to_gregorian()
+
+            record_date = record_date.strftime("%Y-%m-%d") + " " + selected_time.strftime("%H:%M:%S")
+            gregorian_date = gregorian_date.strftime("%Y-%m-%d")  + " " + selected_time.strftime("%H:%M:%S")
+
+            submitted_cooper = st.form_submit_button("محاسبه")
+        
+        if submitted_cooper and distance_cooper > 0:
+            vo2max_cooper = calculate_vo2max_cooper(distance_cooper)
+            exercise_data = {
+                "distance": distance_cooper,
+                "vo2max": vo2max_cooper,
+            }       
+            new_record = {
+                "athlete_id": int(athlete_id),
+                "raw_data": exercise_data,
+                "test_name": "cooper",
+                "test_category": "استقامت",
+                "test_date": record_date,
+                "gregorian_date": gregorian_date
+            }
+            st.metric(label="VO2Max (اکنون)", value=vo2max_cooper)
+            
+            insertRecord(new_record)
+            
+    with col2:
+        cooper_records = pd.DataFrame(listAthleteRecordsByName(athlete_id, test_name="cooper"))
+        if not cooper_records.empty:
+            cooper_records['vo2max'] = cooper_records['raw_data'].apply(lambda x: x['vo2max'])
+
+            bar_line_plot(x=cooper_records["test_date"], y=cooper_records["vo2max"], xaxis_title="تاریخ" ,yaxis_title="VO2max", title="cooper-vo2max")
+        else:
+            st.info("هنوز داده‌ای ثبت نشده است.")
 # Tab 3: History
 with tab3:
-    st.subheader("📋 تاریخچه")
-    if st.session_state.vo2max_data:
-        df_data = pd.DataFrame(st.session_state.vo2max_data)
-        st.dataframe(df_data)
+    st.subheader("📋 گزارش")
+    if not sixmin_records.empty:
+        col1, col2 = st.columns(2)
+        with col1:
+            st.dataframe(sixmin_records)
+        with col2:
+            bar_line_plot(x=sixmin_records["test_date"], y=sixmin_records["vo2max"], xaxis_title="تاریخ" ,yaxis_title="vo2max", title="6-min-vo2max history")
+    else:
+        st.info("هنوز داده‌ای ثبت نشده است.")
 
-        # Plot VO2Max data using Plotly
-        vo2max_plot = px.bar(
-            df_data, 
-            x="تاریخ", 
-            y="VO2Max", 
-            color="Test Type", 
-            title="VO2Max تغییرات",
-            labels={"تاریخ": "Date", "VO2Max": "VO2Max", "Test Type": "Test Type"}
-        )
-        st.plotly_chart(vo2max_plot, use_container_width=True)
+    if not cooper_records.empty:
+        col1, col2 = st.columns(2)
+        with col1:
+            st.dataframe(cooper_records)
+        with col2:
+            bar_line_plot(x=cooper_records["test_date"], y=cooper_records["vo2max"], xaxis_title="تاریخ" ,yaxis_title="vo2max", title="cooper-vo2max history")
     else:
         st.info("هنوز داده‌ای ثبت نشده است.")
