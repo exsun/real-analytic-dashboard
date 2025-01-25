@@ -109,7 +109,6 @@ with tab1:
                         "calculated_data": f"{calculated_data}"
                     }
                     # exercise_data = json.dumps(exercise_data)
-                    print(record_date.strftime("%Y-%m-%d") + jdatetime.datetime.now().strftime("%H:%M:%S"))
                     test_result = {
                         "athlete_id": int(athlete_id),
                         "raw_data": exercise_data,
