@@ -4,289 +4,333 @@ import pandas as pd
 import plotly.express as px
 from persiantools.jdatetime import JalaliDate
 import datetime
+from utils.database import listAthletes, listAthletesHistory, insertRecord, listAthleteRecordsByCategory, listAthleteRecordsByCategoryByName, listAthleteRecordsByName
+from persiantools.jdatetime import JalaliDate, JalaliDateTime
+import time
+from components.charts import bar_line_plot
 
 # Initialize session state for storing test results
 if "agility_test_data" not in st.session_state:
     st.session_state.agility_test_data = []
-tab1, tab2, tab3 = st.tabs(["آزمون چابکی", "توضیحات", "📋 تاریخچه"])
+athletes = pd.DataFrame(listAthletes())
+athlete_name = st.selectbox("ورزشکار", 
+    athletes["name"], 
+    placeholder="انتخاب کنید",
+)
+athlete_id = athletes.loc[athletes["name"] == athlete_name, "athlete_id"].values[0] if not athletes.loc[athletes["name"] == athlete_name, "athlete_id"].empty else ""
+
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["آزمون چابکی ویژه کشتی", "آزمون خرسی","آزمون منطقه", "آزمون T", "آزمون illinois",  "📋 گزارش"])
 
 # Tab 1: Zone Agility Test
 with tab1:
     st.subheader("آزمون چابکی ویژه کشتی")
-    st.markdown("""
-    **فرمول امتیاز چابکی:** 
-    $$ A = \\frac{\\text{تعداد تغییر جهت}}{\\text{مدت زمان آزمون (ثانیه)}} $$
-    """)
-    
-    with st.form("zone_agility_form", clear_on_submit=False):
-        # direction_changes = st.number_input("تعداد تغییر جهت", min_value=1, step=1, key="direction_changes")
-        specefic_duration = st.number_input("مدت زمان آزمون ویژه کشتی (ثانیه)", min_value=1, value=20, step=1, key="specefic_duration")
-        bear_duration = st.number_input("مدت زمان آزمون خرسی (ثانیه)", min_value=1, value=20, step=1, key="bear_duration")
-        zone_duration = st.number_input("مدت زمان آزمون منطقه zone (ثانیه)", min_value=1, value=20, step=1, key="zone_duration")
-        T_duration = st.number_input("مدت زمان آزمون T (ثانیه)", min_value=1, value=20, step=1, key="T_duration")
-        illinois_duration = st.number_input("مدت زمان آزمون illinois (ثانیه)", min_value=1, value=20, step=1, key="illinois_duration")
-
-        submitted = st.form_submit_button("محاسبه")
-    
-    if submitted:
-        # if direction_changes > 0 and duration > 0:
-            selected_time = st.session_state.record_data["date"]
-
+  
+    col1, col2 = st.columns(2)
+    with col1:
+        with st.form("wrestle_specific_form", enter_to_submit=False, clear_on_submit=False, border=True):
+            wrestle_specific_duration = st.number_input("مدت زمان آزمون چابکی ویژه کشتی (ثانیه)", min_value=1, value=20, step=1, key="wrestle_specific_duration")
             
-            # Save results to session state
-            st.session_state.agility_test_data.append({
-                "Test": "چابکی",
-                "specefic_duration": specefic_duration,
-                "bear_duration": bear_duration,
-                "zone_duration": zone_duration,
-                "T_duration": T_duration,
-                "illinois_duration": illinois_duration,
-                "تاریخ": selected_time,
-            })
-            agility_test_data = [{
-                "Test": "چابکی",
-                "specefic_duration": specefic_duration,
-                "bear_duration": bear_duration,
-                "zone_duration": zone_duration,
-                "T_duration": T_duration,
-                "illinois_duration": illinois_duration,
-                "تاریخ": selected_time,
-            }]
+            day , month, year= st.columns(3)
+            with year:
+                years = list(range(JalaliDate.today().year+1, 1390, -1))
+                selected_year = st.selectbox("", years, index=years.index(JalaliDate.today().year))
+            with month:
+                months = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"]
+                selected_month = st.selectbox("", months, index=JalaliDate.today().month - 1)
+            with day:
+                days = list(range(1, 32))
+                selected_day = st.selectbox("تاریخ", days, index=JalaliDate.today().day - 1)
+            selected_time = st.time_input("زمان", datetime.time(8, 45))
 
-            # Display metrics
-            # st.metric(label="امتیاز چابکی", value=f"{round(agility_score, 2)} تغییر جهت/ثانیه")
-            # st.metric(label="امتیاز چابکی", value=f"{round(agility_score, 2)} تغییر جهت/ثانیه")
-
-            # st.metric(label="آزمون ویژه کشتی (ثانیه)", value=f"{specefic_duration}")
-            # st.metric(label="آزمون خرسی (ثانیه)", value=f"{bear_duration}")
-            # st.metric(label="آزمون منطقه zone (ثانیه)", value=f"{zone_duration}")
-            # st.metric(label="آزمون T (ثانیه)", value=f"{T_duration}")
-            # st.metric(label="آزمون illinois (ثانیه)", value=f"{illinois_duration}")
-
-            df = pd.DataFrame(agility_test_data).sort_values(by="تاریخ")
+            record_date = JalaliDateTime(selected_year, months.index(selected_month) + 1, selected_day, locale="en")
+            gregorian_date = record_date.to_gregorian()
             
-            # Convert Gregorian to Jalali for display
+            record_date = record_date.strftime("%Y-%m-%d") + " " + selected_time.strftime("%H:%M:%S")
+            gregorian_date = gregorian_date.strftime("%Y-%m-%d")  + " " + selected_time.strftime("%H:%M:%S")
 
-            # Melt the DataFrame for combining metrics
-            melted_df = pd.melt(
-                df,
-                id_vars=["تاریخ"],
-                value_vars=["specefic_duration", "bear_duration", "zone_duration", "T_duration", "illinois_duration"],
-                var_name="Duration Type",
-                value_name="Duration (seconds)"
-            )
 
-            # Create Grouped Bar Plot
-            fig = px.bar(
-                melted_df,
-                x="تاریخ",
-                y="Duration (seconds)",
-                color="Duration Type",
-                barmode="group",
-                title="تغییرات زمانی در آزمون‌های چابکی",
-                labels={"تاریخ": "تاریخ", "Duration (seconds)": "مدت زمان (ثانیه)", "Duration Type": "نوع آزمون"}
+            submitted = st.form_submit_button("محاسبه")
+        
+        if submitted:
+            exercise_data = {
+                "wrestle_specific_duration": wrestle_specific_duration,
+            }
 
-            )
+            new_record = {
+                "athlete_id": int(athlete_id),
+                "raw_data": exercise_data,
+                "test_name": "wrestle_specific",
+                "test_category": "چابکی",
+                "test_date": record_date,
+                "gregorian_date": gregorian_date
+            }
+        
+            st.metric(label="آزمون چابکی ویژه کشتی (ثانیه)", value=f"{wrestle_specific_duration}")
+    
+            insertRecord(new_record)
 
-            # Display the Bar Plot
-            st.plotly_chart(fig, use_container_width=True)
+    with col2:
+        wrestle_specific_records = pd.DataFrame(listAthleteRecordsByName(athlete_id, test_name="wrestle_specific"))
+        if not wrestle_specific_records.empty:
+            wrestle_specific_records['wrestle_specific_duration'] = wrestle_specific_records['raw_data'].apply(lambda x: x['wrestle_specific_duration'])
 
-            st.dataframe(df)
-
+            bar_line_plot(x=wrestle_specific_records["test_date"], y=wrestle_specific_records["wrestle_specific_duration"], xaxis_title="تاریخ" ,yaxis_title="مدت زمان", title="آزمون چابکی ویژه کشتی (ثانیه)")
+        else:
+            st.info("هنوز داده‌ای ثبت نشده است.")
 with tab2:
-    with st.expander("توضیحات آزمون خرسی"):
-        st.markdown("""
-            ## آزمون خرسی (Bear Crawl Test)
+    st.subheader("آزمون خرسی")
+    col1, col2 = st.columns(2)
+    with col1:
+        with st.form("bear_form", enter_to_submit=False, clear_on_submit=False, border=True):
+            bear_duration = st.number_input("مدت زمان آزمون خرسی (ثانیه)", min_value=1, value=20, step=1, key="bear_duration")
+            
+            day , month, year= st.columns(3)
+            with year:
+                years = list(range(JalaliDate.today().year+1, 1390, -1))
+                selected_year = st.selectbox("", years, index=years.index(JalaliDate.today().year) , key="year")
+            with month:
+                months = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"]
+                selected_month = st.selectbox("", months, index=JalaliDate.today().month - 1 , key="month")
+            with day:
+                days = list(range(1, 32))
+                selected_day = st.selectbox("تاریخ", days, index=JalaliDate.today().day - 1 , key="day")
+            selected_time = st.time_input("زمان", datetime.time(8, 45))
 
-            **هدف آزمون:** 
-            - ارزیابی قدرت، استقامت و چابکی کشتی‌گیر.
-
-            ---
-
-            ## ⚙️ **مراحل اجرای آزمون**
-            1. یک مسیر با طول مشخص (مثلاً **۱۰ متر**) تعیین کنید.
-            2. کشتی‌گیر باید با استفاده از حرکت خرسی مسیر را طی کند:
-            - دست‌ها و پاها روی زمین.
-            - بدن نزدیک به زمین.
-            3. زمان تکمیل مسیر ثبت می‌شود.
-
-            ---
-
-            ## 📐 **فرمول‌ها و محاسبات**
-
-            ### 1. **زمان آزمون:**
-            \[
-            T = \text{مدت زمان تکمیل مسیر (ثانیه)}
-            \]
-
-            ### 2. **توان متوسط:**
-            \[
-            P = \\frac{m \\cdot d}{T}
-            \]
-            - \( m \): وزن بدن (کیلوگرم).
-            - \( d \): طول مسیر (متر).
-            - \( T \): زمان تکمیل مسیر (ثانیه).
-
-            ---
-
-            ## 🔢 **ورودی‌های موردنیاز**
-            1. وزن بدن.
-            2. طول مسیر.
-            3. زمان تکمیل مسیر.
-
-            ---
-
-            ## 📊 **خروجی‌ها**
-            - **زمان آزمون (ثانیه):** مدت زمان تکمیل مسیر.
-            - **توان متوسط (W):** توان تخمینی بر اساس وزن بدن و زمان.
+            record_date = JalaliDateTime(selected_year, months.index(selected_month) + 1, selected_day, locale="en")
+            gregorian_date = record_date.to_gregorian()
+            
+            record_date = record_date.strftime("%Y-%m-%d") + " " + selected_time.strftime("%H:%M:%S")
+            gregorian_date = gregorian_date.strftime("%Y-%m-%d")  + " " + selected_time.strftime("%H:%M:%S")
 
 
-        """)
+            submitted = st.form_submit_button("محاسبه")
+        
+        if submitted:
+            exercise_data = {
+                "bear_duration": bear_duration,
+            }
 
-    with st.expander("توضیحات آزمون زون zone"):
-        st.markdown("""
-            ## آزمون چابکی زون (Zone Agility Test)
+            new_record = {
+                "athlete_id": int(athlete_id),
+                "raw_data": exercise_data,
+                "test_name": "bear",
+                "test_category": "چابکی",
+                "test_date": record_date,
+                "gregorian_date": gregorian_date
+            }
+        
+            st.metric(label="آزمون خرسی (ثانیه)", value=f"{bear_duration}")
+    
+            insertRecord(new_record)
 
-            **هدف آزمون:** 
-            - ارزیابی توانایی کشتی‌گیر برای تغییر جهت سریع در محدوده مشخص.
+    with col2:
+        bear_records = pd.DataFrame(listAthleteRecordsByName(athlete_id, test_name="bear"))
+        if not bear_records.empty:
+            bear_records['bear_duration'] = bear_records['raw_data'].apply(lambda x: x['bear_duration'])
 
-            ---
-
-            ## ⚙️ **مراحل اجرای آزمون**
-            1. محدوده‌ای به ابعاد **۵x۵ متر** مشخص کنید.
-            2. کشتی‌گیر باید به‌سرعت در جهات تصادفی که توسط مربی مشخص می‌شود حرکت کند.
-            3. مدت زمان آزمون معمولاً **۲۰ ثانیه** است.
-            4. تعداد تغییرات جهت در طول آزمون ثبت می‌شود.
-
-            ---
-
-            ## 📐 **فرمول و محاسبات**
-            **امتیاز چابکی:** 
-            $$ A = \\frac{\\text{تعداد تغییر جهت}}{\\text{مدت زمان آزمون (ثانیه)}} $$
-
-            ---
-
-            ## 🔢 **ورودی‌های موردنیاز**
-            1. تعداد تغییرات جهت.
-            2. مدت زمان آزمون.
-
-            ---
-
-            ## 📊 **خروجی‌ها**
-            - **امتیاز چابکی (A):** تعداد تغییرات جهت در هر ثانیه.
-
-
-        """)
-
-    with st.expander("توضیحات آزمون T"):
-        st.markdown("""
-            ## آزمون چابکی T (T Agility Test)
-
-            **هدف آزمون:** 
-            - ارزیابی توانایی کشتی‌گیر برای تغییر جهت به جلو، عقب و طرفین.
-
-            ---
-
-            ## ⚙️ **مراحل اجرای آزمون**
-            1. مسیری به شکل حرف T تنظیم کنید:
-            - نقطه شروع (پایین T) تا بالای T (۱۰ متر).
-            - حرکت به طرفین T (۵ متر به هر طرف).
-            2. کشتی‌گیر باید به ترتیب مسیر مشخص‌شده را حرکت کند:
-            - حرکت مستقیم به جلو.
-            - حرکت جانبی به طرفین.
-            - بازگشت به نقطه شروع.
-            3. زمان تکمیل مسیر ثبت می‌شود.
-
-            ---
-
-            ## 📐 **فرمول و محاسبات**
-            **زمان آزمون:** 
-            زمان کل برای تکمیل مسیر.
-
-            ---
-
-            ## 🔢 **ورودی‌های موردنیاز**
-            1. زمان تکمیل مسیر.
-
-            ---
-
-            ## 📊 **خروجی‌ها**
-            - **زمان آزمون (ثانیه):** مدت زمان تکمیل مسیر.
-
-        """)
-
-
-    with st.expander("توضیحات آزمون illinois"):
-        st.markdown("""
-            ## آزمون چابکی ایلینوی (Illinois Agility Test)
-
-            **هدف آزمون:** 
-            - ارزیابی توانایی کشتی‌گیر برای تغییر جهت سریع در یک مسیر مشخص.
-
-            ---
-
-            ## ⚙️ **مراحل اجرای آزمون**
-            1. مسیر آزمون شامل ۸ مخروط است:
-            - فاصله طولی: ۱۰ متر.
-            - فاصله عرضی بین مخروط‌ها: ۳ متر.
-            2. کشتی‌گیر باید به ترتیب مسیر مشخص‌شده حرکت کند.
-            3. زمان تکمیل مسیر ثبت می‌شود.
-
-            ---
-
-            ## 📐 **فرمول و محاسبات**
-            **زمان آزمون:** 
-            زمان کل برای تکمیل مسیر.
-
-            ---
-
-            ## 🔢 **ورودی‌های موردنیاز**
-            1. زمان تکمیل مسیر.
-
-            ---
-
-            ## 📊 **خروجی‌ها**
-            - **زمان آزمون (ثانیه):** مدت زمان تکمیل مسیر.
-
-
-        """)
-
+            bar_line_plot(x=bear_records["test_date"], y=bear_records["bear_duration"], xaxis_title="تاریخ" ,yaxis_title="مدت زمان", title="آزمون خرسی (ثانیه)")
+        else:
+            st.info("هنوز داده‌ای ثبت نشده است.")
 
 with tab3:
-    # Historical Bar Chart
-    if st.session_state.agility_test_data:
-        df_history = pd.DataFrame(st.session_state.agility_test_data).sort_values(by="تاریخ")
+    st.subheader("آزمون منطقه")
+    col1, col2 = st.columns(2)
+    with col1:
+        with st.form("zone_form", enter_to_submit=False, clear_on_submit=False, border=True):
+            zone_duration = st.number_input("مدت زمان آزمون منطقه (ثانیه)", min_value=1, value=20, step=1, key="zone_duration")
+            
+            day , month, year= st.columns(3)
+            with year:
+                years = list(range(JalaliDate.today().year+1, 1390, -1))
+                selected_year = st.selectbox("", years, index=years.index(JalaliDate.today().year))
+            with month:
+                months = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"]
+                selected_month = st.selectbox("", months, index=JalaliDate.today().month - 1)
+            with day:
+                days = list(range(1, 32))
+                selected_day = st.selectbox("تاریخ", days, index=JalaliDate.today().day - 1)
+            selected_time = st.time_input("زمان", datetime.time(8, 45))
 
-        # Convert Gregorian to Jalali for display
+            record_date = JalaliDateTime(selected_year, months.index(selected_month) + 1, selected_day, locale="en")
+            gregorian_date = record_date.to_gregorian()
+            
+            record_date = record_date.strftime("%Y-%m-%d") + " " + selected_time.strftime("%H:%M:%S")
+            gregorian_date = gregorian_date.strftime("%Y-%m-%d")  + " " + selected_time.strftime("%H:%M:%S")
 
-        # Melt the DataFrame for combining metrics
-        melted_df = pd.melt(
-            df_history,
-            id_vars=["تاریخ"],
-            value_vars=["specefic_duration", "bear_duration", "zone_duration", "T_duration", "illinois_duration"],
-            var_name="Duration Type",
-            value_name="Duration (seconds)"
-        )
 
-        # Create Grouped Bar Plot
-        plot = px.bar(
-            melted_df,
-            x="تاریخ",
-            y="Duration (seconds)",
-            color="Duration Type",
-            barmode="group",
-            title="تغییرات زمانی در آزمون‌های چابکی",
-            labels={"تاریخ": "تاریخ", "Duration (seconds)": "مدت زمان (ثانیه)", "Duration Type": "نوع آزمون"}
-        )
+            submitted = st.form_submit_button("محاسبه")
+        
+        if submitted:
+            exercise_data = {
+                "zone_duration": zone_duration,
+            }
 
-        plot.update_layout(
-            xaxis=dict(type="category"),
-            title_x=0.5,  # Center the title
-        )
+            new_record = {
+                "athlete_id": int(athlete_id),
+                "raw_data": exercise_data,
+                "test_name": "zone",
+                "test_category": "چابکی",
+                "test_date": record_date,
+                "gregorian_date": gregorian_date
+            }
+        
+            st.metric(label="آزمون منطقه (ثانیه)", value=f"{zone_duration}")
+    
+            insertRecord(new_record)
 
-        # Display the Bar Plot
-        st.plotly_chart(plot, use_container_width=True)
-        st.dataframe(df_history)
+    with col2:
+        zone_records = pd.DataFrame(listAthleteRecordsByName(athlete_id, test_name="zone"))
+        if not zone_records.empty:
+            zone_records['zone_duration'] = zone_records['raw_data'].apply(lambda x: x['zone_duration'])
 
-    else:
-        st.info("هنوز داده‌ای ثبت نشده است.")
+            bar_line_plot(x=zone_records["test_date"], y=zone_records["zone_duration"], xaxis_title="تاریخ" ,yaxis_title="مدت زمان", title="آزمون منطقه (ثانیه)")
+        else:
+            st.info("هنوز داده‌ای ثبت نشده است.")
+with tab4:
+    st.subheader("آزمون T")
+    col1, col2 = st.columns(2)
+    with col1:
+        with st.form("T_form", enter_to_submit=False, clear_on_submit=False, border=True):
+            T_duration = st.number_input("مدت زمان آزمون T (ثانیه)", min_value=1, value=20, step=1, key="T_duration")
+            
+            day , month, year= st.columns(3)
+            with year:
+                years = list(range(JalaliDate.today().year+1, 1390, -1))
+                selected_year = st.selectbox("", years, index=years.index(JalaliDate.today().year))
+            with month:
+                months = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"]
+                selected_month = st.selectbox("", months, index=JalaliDate.today().month - 1)
+            with day:
+                days = list(range(1, 32))
+                selected_day = st.selectbox("تاریخ", days, index=JalaliDate.today().day - 1)
+            selected_time = st.time_input("زمان", datetime.time(8, 45))
+
+            record_date = JalaliDateTime(selected_year, months.index(selected_month) + 1, selected_day, locale="en")
+            gregorian_date = record_date.to_gregorian()
+            
+            record_date = record_date.strftime("%Y-%m-%d") + " " + selected_time.strftime("%H:%M:%S")
+            gregorian_date = gregorian_date.strftime("%Y-%m-%d")  + " " + selected_time.strftime("%H:%M:%S")
+
+
+            submitted = st.form_submit_button("محاسبه")
+        
+        if submitted:
+            exercise_data = {
+                "T_duration": T_duration,
+            }
+
+            new_record = {
+                "athlete_id": int(athlete_id),
+                "raw_data": exercise_data,
+                "test_name": "T",
+                "test_category": "چابکی",
+                "test_date": record_date,
+                "gregorian_date": gregorian_date
+            }
+        
+            st.metric(label="آزمون T (ثانیه)", value=f"{T_duration}")
+    
+            insertRecord(new_record)
+
+    with col2:
+        T_records = pd.DataFrame(listAthleteRecordsByName(athlete_id, test_name="T"))
+        if not T_records.empty:
+            T_records['T_duration'] = T_records['raw_data'].apply(lambda x: x['T_duration'])
+
+            bar_line_plot(x=T_records["test_date"], y=T_records["T_duration"], xaxis_title="تاریخ" ,yaxis_title="مدت زمان", title="آزمون T (ثانیه)")
+        else:
+            st.info("هنوز داده‌ای ثبت نشده است.")
+
+with tab5:
+    st.subheader("آزمون illinois")
+    col1, col2 = st.columns(2)
+    with col1:
+        with st.form("illinois_form", enter_to_submit=False, clear_on_submit=False, border=True):
+            illinois_duration = st.number_input("مدت زمان آزمون illinois (ثانیه)", min_value=1, value=20, step=1, key="illinois_duration")
+            
+            day , month, year= st.columns(3)
+            with year:
+                years = list(range(JalaliDate.today().year+1, 1390, -1))
+                selected_year = st.selectbox("", years, index=years.index(JalaliDate.today().year))
+            with month:
+                months = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"]
+                selected_month = st.selectbox("", months, index=JalaliDate.today().month - 1)
+            with day:
+                days = list(range(1, 32))
+                selected_day = st.selectbox("تاریخ", days, index=JalaliDate.today().day - 1)
+            selected_time = st.time_input("زمان", datetime.time(8, 45))
+
+            record_date = JalaliDateTime(selected_year, months.index(selected_month) + 1, selected_day, locale="en")
+            gregorian_date = record_date.to_gregorian()
+            
+            record_date = record_date.strftime("%Y-%m-%d") + " " + selected_time.strftime("%H:%M:%S")
+            gregorian_date = gregorian_date.strftime("%Y-%m-%d")  + " " + selected_time.strftime("%H:%M:%S")
+
+
+            submitted = st.form_submit_button("محاسبه")
+        
+        if submitted:
+            exercise_data = {
+                "illinois_duration": illinois_duration,
+            }
+
+            new_record = {
+                "athlete_id": int(athlete_id),
+                "raw_data": exercise_data,
+                "test_name": "illinois",
+                "test_category": "چابکی",
+                "test_date": record_date,
+                "gregorian_date": gregorian_date
+            }
+        
+            st.metric(label="آزمون illinois (ثانیه)", value=f"{illinois_duration}")
+    
+            insertRecord(new_record)
+
+    with col2:
+        illinois_records = pd.DataFrame(listAthleteRecordsByName(athlete_id, test_name="illinois"))
+        if not illinois_records.empty:
+            illinois_records['illinois_duration'] = illinois_records['raw_data'].apply(lambda x: x['illinois_duration'])
+
+            bar_line_plot(x=illinois_records["test_date"], y=illinois_records["illinois_duration"], xaxis_title="تاریخ" ,yaxis_title="مدت زمان", title="آزمون illinois (ثانیه)")
+        else:
+            st.info("هنوز داده‌ای ثبت نشده است.")
+
+with tab6:
+    st.subheader("📋 گزارش")
+    # if st.session_state.agility_test_data:
+    #     df_history = pd.DataFrame(st.session_state.agility_test_data).sort_values(by="تاریخ")
+
+    #     # Convert Gregorian to Jalali for display
+
+    #     # Melt the DataFrame for combining metrics
+    #     melted_df = pd.melt(
+    #         df_history,
+    #         id_vars=["تاریخ"],
+    #         value_vars=["specefic_duration", "bear_duration", "zone_duration", "T_duration", "illinois_duration"],
+    #         var_name="Duration Type",
+    #         value_name="Duration (seconds)"
+    #     )
+
+    #     # Create Grouped Bar Plot
+    #     plot = px.bar(
+    #         melted_df,
+    #         x="تاریخ",
+    #         y="Duration (seconds)",
+    #         color="Duration Type",
+    #         barmode="group",
+    #         title="تغییرات زمانی در آزمون‌های چابکی",
+    #         labels={"تاریخ": "تاریخ", "Duration (seconds)": "مدت زمان (ثانیه)", "Duration Type": "نوع آزمون"}
+    #     )
+
+    #     plot.update_layout(
+    #         xaxis=dict(type="category"),
+    #         title_x=0.5,  # Center the title
+    #     )
+
+    #     # Display the Bar Plot
+    #     st.plotly_chart(plot, use_container_width=True)
+    #     st.dataframe(df_history)
+
+    # else:
+    #     st.info("هنوز داده‌ای ثبت نشده است.")
