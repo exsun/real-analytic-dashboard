@@ -3,109 +3,188 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from persiantools.jdatetime import JalaliDate
+from utils.database import listAthletes, listAthletesHistory, insertRecord, listAthleteRecordsByCategory, listAthleteRecordsByCategoryByName, listAthleteRecordsByName
+from persiantools.jdatetime import JalaliDate, JalaliDateTime
+from components.charts import bar_line_plot
 import datetime
+import time
 
 # Initialize session state for storing test results
 if "muscle_stamina_test_data" not in st.session_state:
     st.session_state.muscle_stamina_test_data = []
 
-tab1, tab2 = st.tabs(["آزمون استقامت عضلانی", "📋 تاریخچه"])
+st.header("استقامت عضلانی")
+athletes = pd.DataFrame(listAthletes())
+athlete_name = st.selectbox("ورزشکار", 
+    athletes["name"], 
+    placeholder="انتخاب کنید",
+)
+athlete_id = athletes.loc[athletes["name"] == athlete_name, "athlete_id"].values[0] if not athletes.loc[athletes["name"] == athlete_name, "athlete_id"].empty else ""
+athlete_weight = athletes.loc[athletes["name"] == athlete_name, "weight"].values[0] if not athletes.loc[athletes["name"] == athlete_name, "weight"].empty else ""
+
+tab1, tab2, tab3, tab4 = st.tabs(["آزمون دراز و نشست", "آزمون بارفیکس", "آزمون دیپ پارالل", "📋 گزارش"])
 
 with tab1:
-    with st.form("muscle_stamina_tests_form", clear_on_submit=False):
+    st.subheader("آزمون استقامت عضلانی")
+    st.subheader("دراز و نشست با توپ مدیسین بال (۱۰٪ وزن بدن)")
+  
+    col1, col2 = st.columns(2)
+    with col1:
+        with st.form("situp_form", enter_to_submit=False, clear_on_submit=False, border=True):
 
-        st.subheader("آزمون استقامت عضلانی")
-        st.subheader("دراز و نشست با توپ مدیسین بال (۱۰٪ وزن بدن)")
-        body_mass = st.number_input("وزن بدن (کیلوگرم)", min_value=1.0, step=0.1, key="body_mass")
-        situp_reps = st.number_input("تعداد دراز و نشست (در یک دقیقه)", min_value=0, step=1, key="situp_reps")
-        pullup_reps = st.number_input("تعداد بارفیکس", min_value=0, step=1, key="pullup_reps")
-        dip_reps = st.number_input("تعداد دیپ پارالل", min_value=0, step=1, key="dip_reps")
+            situp_reps = st.number_input("تعداد دراز و نشست (در یک دقیقه)", min_value=0, step=1, key="situp_reps")
+            # medicine_ball_weight = st.number_input("وزن توپ مدیسن بال", min_value=0, step=1, key="medicine_ball")
+            
+            day , month, year= st.columns(3)
+            with year:
+                years = list(range(JalaliDate.today().year+1, 1390, -1))
+                selected_year = st.selectbox("", years, index=years.index(JalaliDate.today().year))
+            with month:
+                months = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"]
+                selected_month = st.selectbox("", months, index=JalaliDate.today().month - 1)
+            with day:
+                days = list(range(1, 32))
+                selected_day = st.selectbox("تاریخ", days, index=JalaliDate.today().day - 1)
+            selected_time = st.time_input("زمان", datetime.time(8, 45))
 
-        submitted = st.form_submit_button("ثبت")
+            record_date = JalaliDateTime(selected_year, months.index(selected_month) + 1, selected_day, locale="en")
+            gregorian_date = record_date.to_gregorian()
+            
+            record_date = record_date.strftime("%Y-%m-%d") + " " + selected_time.strftime("%H:%M:%S")
+            gregorian_date = gregorian_date.strftime("%Y-%m-%d")  + " " + selected_time.strftime("%H:%M:%S")
 
-        if submitted:
-            medicine_ball_weight = body_mass * 0.1
-            selected_time = st.session_state.record_data["date"]
+            submitted = st.form_submit_button("ثبت")
 
-            # Save results to session state
-            if "muscular_endurance_data" not in st.session_state:
-                st.session_state.muscular_endurance_data = []
+            if submitted:
 
-            muscle_stamina_test_data = [{
-                "تاریخ": selected_time,
-                "وزن بدن": body_mass,
-                "وزن توپ مدیسین بال": round(medicine_ball_weight, 2),
-                "دراز و نشست": situp_reps,
-                "بارفیکس": pullup_reps,
-                "دیپ پارالل": dip_reps
-            }]
+                exercise_data = {
+                    "situp_reps": situp_reps,
+                    # "medicine_ball_weight": medicine_ball_weight
+                }
 
+                new_record = {
+                    "athlete_id": int(athlete_id),
+                    "raw_data": exercise_data,
+                    "test_name": "situp",
+                    "test_category": "muscle_stamina",
+                    "test_date": record_date,
+                    "gregorian_date": gregorian_date
+                }
+                insertRecord(new_record)
 
-    
+    with col2:
+        situp_records = pd.DataFrame(listAthleteRecordsByName(athlete_id, test_name="situp"))
+        if not situp_records.empty:
+            situp_records['situp_reps'] = situp_records['raw_data'].apply(lambda x: x['situp_reps'])
 
-            st.session_state.muscle_stamina_test_data.append(muscle_stamina_test_data[0])
+            bar_line_plot(x=situp_records["test_date"], y=situp_records["situp_reps"], xaxis_title="تاریخ" ,yaxis_title="تعداد", title="آزمون دراز نشست (تعداد)")
+        else:
+            st.info("هنوز داده‌ای ثبت نشده است.")
 
-            df = pd.DataFrame(muscle_stamina_test_data).sort_values(by="تاریخ")
-        
+with tab2:   
+    st.subheader("آزمون بارفیکس")
+  
+    col1, col2 = st.columns(2)
+    with col1:
+        with st.form("pullup_form", enter_to_submit=False, clear_on_submit=False, border=True):
+            
+            pullup_reps = st.number_input("تعداد بارفیکس", min_value=0, step=1, key="pullup_reps")
 
-            # Melt the DataFrame for combining metrics
-            melted_df = pd.melt(
-                df,
-                id_vars=["تاریخ"],
-                value_vars=["دراز و نشست", "بارفیکس", "دیپ پارالل"],
-                var_name="Count Type",
-                value_name="Count (centemeter)"
-            )
+            day , month, year= st.columns(3)
+            with year:
+                years = list(range(JalaliDate.today().year+1, 1390, -1))
+                selected_year = st.selectbox("", years, index=years.index(JalaliDate.today().year))
+            with month:
+                months = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"]
+                selected_month = st.selectbox("", months, index=JalaliDate.today().month - 1)
+            with day:
+                days = list(range(1, 32))
+                selected_day = st.selectbox("تاریخ", days, index=JalaliDate.today().day - 1)
+            selected_time = st.time_input("زمان", datetime.time(8, 45))
 
-            # Create Grouped Bar Plot
-            fig = px.bar(
-                melted_df,
-                x="تاریخ",
-                y="Count (centemeter)",
-                color="Count Type",
-                barmode="group",
-                title="تغییرات زمانی در آزمون‌های چابکی",
-                labels={"تاریخ": "تاریخ", "Count (centemeter)": "مدت زمان (ثانیه)", "Count Type": "نوع آزمون"}
+            record_date = JalaliDateTime(selected_year, months.index(selected_month) + 1, selected_day, locale="en")
+            gregorian_date = record_date.to_gregorian()
+            
+            record_date = record_date.strftime("%Y-%m-%d") + " " + selected_time.strftime("%H:%M:%S")
+            gregorian_date = gregorian_date.strftime("%Y-%m-%d")  + " " + selected_time.strftime("%H:%M:%S")
 
-            )
+            submitted = st.form_submit_button("ثبت")
 
-            # Display the Bar Plot
-            st.plotly_chart(fig, use_container_width=True)
+            if submitted:
 
-            st.dataframe(df)
+                exercise_data = {
+                    "pullup_reps": pullup_reps,
+                }
 
-with tab2:
-    # Historical Bar Chart
-    if st.session_state.muscle_stamina_test_data:
-        df_history = pd.DataFrame(st.session_state.muscle_stamina_test_data).sort_values(by="تاریخ")
+                new_record = {
+                    "athlete_id": int(athlete_id),
+                    "raw_data": exercise_data,
+                    "test_name": "pullup",
+                    "test_category": "muscle_stamina",
+                    "test_date": record_date,
+                    "gregorian_date": gregorian_date
+                }
+                insertRecord(new_record)
 
-        # Convert Gregorian to Jalali for display
+    with col2:
+        pullup_records = pd.DataFrame(listAthleteRecordsByName(athlete_id, test_name="pullup"))
+        if not pullup_records.empty:
+            pullup_records['pullup_reps'] = pullup_records['raw_data'].apply(lambda x: x['pullup_reps'])
 
-        # Melt the DataFrame for combining metrics
-        history_fig_melted_df = pd.melt(
-            df_history,
-            id_vars=["تاریخ"],
-            value_vars=["دراز و نشست", "بارفیکس", "دیپ پارالل"],
-            var_name="Count Type",
-            value_name="Count (centemeter)"
-        )
+            bar_line_plot(x=pullup_records["test_date"], y=pullup_records["pullup_reps"], xaxis_title="تاریخ" ,yaxis_title="تعداد", title="آزمون دراز نشست (تعداد)")
+        else:
+            st.info("هنوز داده‌ای ثبت نشده است.")
 
-        # Create Grouped Bar Plot
-        history_fig = px.bar(
-            history_fig_melted_df,
-            x="تاریخ",
-            y="Count (centemeter)",
-            color="Count Type",
-            barmode="group",
-            title="تغییرات زمانی در آزمون‌های چابکی",
-            labels={"تاریخ": "تاریخ", "Count (centemeter)": "مدت زمان (ثانیه)", "Count Type": "نوع آزمون"}
+with tab3:   
+    st.subheader("آزمون دیپ پارالل")
+  
+    col1, col2 = st.columns(2)
+    with col1:
+        with st.form("dip_parallel_form", enter_to_submit=False, clear_on_submit=False, border=True):
+            
+            dip_parallel_reps = st.number_input("تعداد دیپ پارالل", min_value=0, step=1, key="dip_parallel_reps")
 
-        )
+            day , month, year= st.columns(3)
+            with year:
+                years = list(range(JalaliDate.today().year+1, 1390, -1))
+                selected_year = st.selectbox("", years, index=years.index(JalaliDate.today().year))
+            with month:
+                months = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"]
+                selected_month = st.selectbox("", months, index=JalaliDate.today().month - 1)
+            with day:
+                days = list(range(1, 32))
+                selected_day = st.selectbox("تاریخ", days, index=JalaliDate.today().day - 1)
+            selected_time = st.time_input("زمان", datetime.time(8, 45))
 
-        # Display the Bar Plot
-        st.plotly_chart(history_fig, use_container_width=True)
+            record_date = JalaliDateTime(selected_year, months.index(selected_month) + 1, selected_day, locale="en")
+            gregorian_date = record_date.to_gregorian()
+            
+            record_date = record_date.strftime("%Y-%m-%d") + " " + selected_time.strftime("%H:%M:%S")
+            gregorian_date = gregorian_date.strftime("%Y-%m-%d")  + " " + selected_time.strftime("%H:%M:%S")
 
-        st.dataframe(df_history)
+            submitted = st.form_submit_button("ثبت")
 
-    else:
-        st.info("هنوز داده‌ای ثبت نشده است.")
+            if submitted:
+
+                exercise_data = {
+                    "dip_parallel_reps": dip_parallel_reps,
+                }
+
+                new_record = {
+                    "athlete_id": int(athlete_id),
+                    "raw_data": exercise_data,
+                    "test_name": "dip_parallel",
+                    "test_category": "muscle_stamina",
+                    "test_date": record_date,
+                    "gregorian_date": gregorian_date
+                }
+                insertRecord(new_record)
+
+    with col2:
+        dip_parallel_records = pd.DataFrame(listAthleteRecordsByName(athlete_id, test_name="dip_parallel"))
+        if not dip_parallel_records.empty:
+            dip_parallel_records['dip_parallel_reps'] = dip_parallel_records['raw_data'].apply(lambda x: x['dip_parallel_reps'])
+
+            bar_line_plot(x=dip_parallel_records["test_date"], y=dip_parallel_records["dip_parallel_reps"], xaxis_title="تاریخ" ,yaxis_title="تعداد", title="آزمون دیپ پارالل (تعداد)")
+        else:
+            st.info("هنوز داده‌ای ثبت نشده است.")
