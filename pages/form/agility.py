@@ -3,11 +3,11 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from persiantools.jdatetime import JalaliDate
-import datetime
 from utils.database import listAthletes, listAthletesHistory, insertRecord, listAthleteRecordsByCategory, listAthleteRecordsByCategoryByName, listAthleteRecordsByName
 from persiantools.jdatetime import JalaliDate, JalaliDateTime
-import time
 from components.charts import bar_line_plot
+import time
+import datetime
 
 # Initialize session state for storing test results
 if "agility_test_data" not in st.session_state:
