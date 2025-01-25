@@ -21,15 +21,17 @@ def listAthletesHistory(athlete_id):
                                  ttl=0)
     return test_results.data
 
-def insertRecord(test_result):
+def insertRecord(new_record):
     try:
         execute_query(st.session_state["client"]
                                 .table("test_results")
-                                .insert(test_result),
+                                .insert(new_record),
                                 ttl=0)
-        st.success("sucess")
+        st.success("آزمون با موفقیت ثبت شد")
+        st.info(new_record['test_date'])
     except:
-        st.warning("fail")
+        st.warning("ثبت تست با خطا مواجه شد !!!")
+        st.info(new_record['test_date'])
 
 def listAthleteRecordsByCategory(athlete_id, category):
     test_results = execute_query(st.session_state["client"]
