@@ -64,7 +64,7 @@ with tab1:
                 "test_date": record_date,
                 "gregorian_date": gregorian_date
             }
-            st.metric(label="sit_reach (اکنون)", value=sit_reach)
+            st.metric(label="sit_reach (اکنون)", value=sit_reach_distance)
             
             insertRecord(new_record)
 
@@ -110,7 +110,6 @@ with tab2:
             submitted = st.form_submit_button("ثبت")
 
         if submitted:
-            selected_time = st.session_state.record_data["date"]
 
             # Save results
             exercise_data = {
@@ -167,7 +166,6 @@ with tab3:
             submitted = st.form_submit_button("ثبت")
 
         if submitted:
-            selected_time = st.session_state.record_data["date"]
 
             # Save results
             exercise_data = {
@@ -189,7 +187,7 @@ with tab3:
         if not upper_body_opening_records.empty:
             upper_body_opening_records['upper_body_opening_distance'] = upper_body_opening_records['raw_data'].apply(lambda x: x['upper_body_opening_distance'])
 
-            bar_line_plot(x=upper_body_opening_records["test_date"], y=upper_body_opening_records["upper_body_opening_distance"], xaxis_title="تاریخ" ,yaxis_title="فاصله (سانتی متر)", title=" آزمون بالا آوردن شانه")
+            bar_line_plot(x=upper_body_opening_records["test_date"], y=upper_body_opening_records["upper_body_opening_distance"], xaxis_title="تاریخ" ,yaxis_title="فاصله (سانتی متر)", title=" آزمون باز شدن بالا تنه")
         else:
             st.info("هنوز داده‌ای ثبت نشده است.")
 
