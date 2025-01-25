@@ -131,7 +131,7 @@ with tab2:
         if not pullup_records.empty:
             pullup_records['pullup_reps'] = pullup_records['raw_data'].apply(lambda x: x['pullup_reps'])
 
-            bar_line_plot(x=pullup_records["test_date"], y=pullup_records["pullup_reps"], xaxis_title="تاریخ" ,yaxis_title="تعداد", title="آزمون دراز نشست (تعداد)")
+            bar_line_plot(x=pullup_records["test_date"], y=pullup_records["pullup_reps"], xaxis_title="تاریخ" ,yaxis_title="تعداد", title="آزمون بارفیکس (تعداد)")
         else:
             st.info("هنوز داده‌ای ثبت نشده است.")
 
