@@ -26,9 +26,10 @@ def strenght_history(results):
         results['estimated_1rm'] = results['raw_data'].apply(lambda x: x['estimated_1rm'])
         col1 , col2 = st.columns(2)
         st.dataframe(results,hide_index=True)
-        bar_line_plot(x=results["test_date"], y=results["estimate_power"], xaxis_title="تاریخ" ,yaxis_title="قدرت نسبی")
+        bar_line_plot(x=results["test_date"], y=results["estimate_power"], xaxis_title="تاریخ" ,yaxis_title="قدرت نسبی", title="estimate_power records")
 
-        bar_line_plot(x=results["test_date"], y=results["estimated_1rm"], xaxis_title="تاریخ" ,yaxis_title="یک تکرار بیشینه")
+
+        bar_line_plot(x=results["test_date"], y=results["estimated_1rm"], xaxis_title="تاریخ" ,yaxis_title="یک تکرار بیشینه", title="estimated_1rm records")
 
 
 @st.fragment
