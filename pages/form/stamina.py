@@ -119,7 +119,7 @@ with tab2:
             with day:
                 days = list(range(1, 32))
                 selected_day = st.selectbox("تاریخ", days, index=JalaliDate.today().day - 1 )
-            selected_time = st.time_input("زمان", datetime.datetime.now().time())
+            selected_time = st.time_input("زمان", datetime.time(8, 45))
 
             record_date = JalaliDateTime(selected_year, months.index(selected_month) + 1, selected_day, locale="en")
             gregorian_date = record_date.to_gregorian()
