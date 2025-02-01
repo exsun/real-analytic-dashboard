@@ -5,7 +5,7 @@ import pandas as pd
 import datetime
 from persiantools.jdatetime import JalaliDate
 from components.charts import bar_line_plot
-from utils.database import listAthletes, listAthletesHistory, insertRecord, listAthleteRecordsByCategory, listAthleteRecordsByCategoryByName, listAthleteRecordsByName
+from utils.database import listAthletes, insertRecord, listAthleteRecordsByCategory, listAthleteRecordsByCategoryByName, listAthleteRecordsByName
 from persiantools.jdatetime import JalaliDate, JalaliDateTime
 import jdatetime
 from zoneinfo import ZoneInfo

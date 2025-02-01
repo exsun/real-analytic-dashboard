@@ -3,7 +3,7 @@ import streamlit as st
 import pandas as pd
 from persiantools.jdatetime import JalaliDate
 import datetime
-from utils.database import listAthletes, listAthletesHistory, insertRecord, listAthleteRecordsByCategory, listAthleteRecordsByCategoryByName, listAthleteRecordsByName
+from utils.database import listAthletes, insertRecord, listAthleteRecordsByCategory, listAthleteRecordsByCategoryByName, listAthleteRecordsByName
 from persiantools.jdatetime import JalaliDate, JalaliDateTime
 from components.charts import bar_line_plot
 import json
@@ -28,11 +28,15 @@ def calculate_power(body_mass, distance, time):
     return 0
 
 # Function to calculate fatigue index for RAST
-def calculate_fatigue_index(max_power, min_power):
-    if max_power > 0:
-        return round(((max_power - min_power) / max_power) * 100, 2)
+def rast_fatigue_index(peak_power, lowest_power, sprint_times):
+    if peak_power > 0:
+        return round(((peak_power - lowest_power) / sum(sprint_times)) , 2)
     return 0
 
+def wingate_fatigue_index(peak_power, lowest_power):
+    if peak_power > 0:
+        return round(((peak_power - lowest_power) / peak_power) * 100 , 2)
+    return 0
 def performance_decrease_perc(time_800m, time_200m):
     if time_800m > 0 and time_200m > 0:
         decrease = ((time_800m - (time_200m * 4)) / time_800m)
@@ -161,9 +165,9 @@ with tab2:
             sprint_powers = [calculate_power(athlete_weight, distance, t) for t in sprint_times]
             total_power = round(sum(sprint_powers),2)  # Total Anaerobic Power
             average_power = round(total_power / 6, 2) if total_power > 0 else 0
-            max_power = round(max(sprint_powers),2)  # Peak Power
-            min_power = round(min(sprint_powers),2)   # Lowest Power
-            fatigue_index = calculate_fatigue_index(max_power, min_power)
+            peak_power = round(max(sprint_powers),2)  # Peak Power
+            lowest_power = round(min(sprint_powers),2)   # Lowest Power
+            fatigue_index = rast_fatigue_index(peak_power, lowest_power, sprint_times)
             
             # Current time for storage
             current_time = datetime.datetime.now()
@@ -181,8 +185,8 @@ with tab2:
             exercise_data = {
                 "total_power": total_power,
                 "average_power": average_power,
-                "max_power": max_power,
-                "min_power": min_power,
+                "peak_power": peak_power,
+                "lowest_power": lowest_power,
                 "fatigue_index": fatigue_index,
                 "sprint_powers": sprint_powers_data
 
@@ -200,7 +204,7 @@ with tab2:
 
             # Display metrics
             metrics = st.columns(4)
-            metrics[0].metric(label="توان اوج (W)", value=f"{max_power} W")
+            metrics[0].metric(label="توان اوج (W)", value=f"{peak_power} W")
             metrics[1].metric(label="توان میانگین (W)", value=f"{average_power} W")
             metrics[2].metric(label="شاخص خستگی (%)", value=f"{fatigue_index}%")
             metrics[3].metric(label="توان بی‌هوازی کل (W)", value=f"{total_power} W")
@@ -214,13 +218,13 @@ with tab2:
         if not rast_records.empty:
             rast_records['total_power'] = rast_records['raw_data'].apply(lambda x: x['total_power'])
             rast_records['average_power'] = rast_records['raw_data'].apply(lambda x: x['average_power'])
-            rast_records['max_power'] = rast_records['raw_data'].apply(lambda x: x['max_power'])
+            rast_records['peak_power'] = rast_records['raw_data'].apply(lambda x: x['peak_power'])
             rast_records['fatigue_index'] = rast_records['raw_data'].apply(lambda x: x['fatigue_index'])
 
             # print(rast_records['sprint_powers'][0])
             # sprint_powers = pd.DataFrame(rast_records['sprint_powers'][0]).transpose()
             # print(sprint_powers['time'])
-            bar_line_plot(x=rast_records["test_date"], y=rast_records['max_power'], xaxis_title="تاریخ" ,yaxis_title="توان اوج", title="توان اوج (W)")
+            bar_line_plot(x=rast_records["test_date"], y=rast_records['peak_power'], xaxis_title="تاریخ" ,yaxis_title="توان اوج", title="توان اوج (W)")
             bar_line_plot(x=rast_records["test_date"], y=rast_records['average_power'], xaxis_title="تاریخ" ,yaxis_title="توان میانگین", title="توان میانگین (W)")
             bar_line_plot(x=rast_records["test_date"], y=rast_records['total_power'], xaxis_title="تاریخ" ,yaxis_title="توان بی هوازی", title="توان بی هوازی (W)")
             bar_line_plot(x=rast_records["test_date"], y=rast_records['fatigue_index'], xaxis_title="تاریخ" ,yaxis_title="شاخص خستگی", title="شاخص خستگی (%)")
@@ -237,7 +241,7 @@ with tab3:
     with col1:
         with st.form("wingate_form", clear_on_submit=False, enter_to_submit=False):
             peak_power = st.number_input("توان اوج (وات)", min_value=0.1, step=0.1, key="peak_power")
-            min_power = st.number_input("توان حداقل (وات)", min_value=0.1, step=0.1, key="min_power")
+            lowest_power = st.number_input("توان حداقل (وات)", min_value=0.1, step=0.1, key="lowest_power")
             duration = st.number_input("مدت زمان آزمون (ثانیه)", min_value=1, step=1, value=30, key="duration")  # Default 30 seconds
             
             day , month, year= st.columns(3)
@@ -261,17 +265,17 @@ with tab3:
             submitted = st.form_submit_button("محاسبه")
         
         if submitted:
-            if peak_power > 0 and min_power > 0 and duration > 0:
+            if peak_power > 0 and lowest_power > 0 and duration > 0:
                 # Calculate metrics
-                fatigue_index = calculate_fatigue_index(peak_power, min_power)
-                average_power = round((peak_power + min_power) / 2 , 2)  # Simplified average power calculation
+                fatigue_index = wingate_fatigue_index(peak_power, lowest_power)
+                average_power = round((peak_power + lowest_power) / 2 , 2)  # Simplified average power calculation
                 total_power = round(average_power * duration, 2)
                
                 exercise_data = {
                     "total_power": total_power,
                     "average_power": average_power,
-                    "max_power": peak_power,
-                    "min_power": min_power,
+                    "peak_power": peak_power,
+                    "lowest_power": lowest_power,
                     "fatigue_index": fatigue_index,
                 }       
                 new_record = {
@@ -297,10 +301,10 @@ with tab3:
         if not wingate_records.empty:
             wingate_records['total_power'] = wingate_records['raw_data'].apply(lambda x: x['total_power'])
             wingate_records['average_power'] = wingate_records['raw_data'].apply(lambda x: x['average_power'])
-            wingate_records['max_power'] = wingate_records['raw_data'].apply(lambda x: x['max_power'])
+            wingate_records['peak_power'] = wingate_records['raw_data'].apply(lambda x: x['peak_power'])
             wingate_records['fatigue_index'] = wingate_records['raw_data'].apply(lambda x: x['fatigue_index'])
 
-            bar_line_plot(x=wingate_records["test_date"], y=wingate_records['max_power'], xaxis_title="تاریخ" ,yaxis_title="توان اوج", title="توان اوج (W) wingate")
+            bar_line_plot(x=wingate_records["test_date"], y=wingate_records['peak_power'], xaxis_title="تاریخ" ,yaxis_title="توان اوج", title="توان اوج (W) wingate")
             bar_line_plot(x=wingate_records["test_date"], y=wingate_records['average_power'], xaxis_title="تاریخ" ,yaxis_title="توان میانگین", title="توان میانگین (W) wingate")
             bar_line_plot(x=wingate_records["test_date"], y=wingate_records['total_power'], xaxis_title="تاریخ" ,yaxis_title="توان بی هوازی", title="توان بی هوازی (W) wingate")
             bar_line_plot(x=wingate_records["test_date"], y=wingate_records['fatigue_index'], xaxis_title="تاریخ" ,yaxis_title="شاخص خستگی", title="شاخص خستگی (%) wingate")

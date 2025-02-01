@@ -3,6 +3,7 @@ import pandas as pd
 import streamlit as st
 from persiantools.jdatetime import JalaliDate
 from datetime import datetime
+from streamlit_nej_datepicker import datepicker_component, Config
 
 from faker import Faker
 @st.cache_data
@@ -53,15 +54,25 @@ with select:
     st.header("All members")
 
     df = get_profile_dataset()
+    table, timelime  = st.columns([4,1], vertical_alignment="top")
 
-    event = st.dataframe(
-        df,
-        column_config=column_configuration,
-        use_container_width=True,
-        hide_index=True,
-        on_select="rerun",
-        selection_mode="multi-row",
-    )
+    with table:
+        st.subheader("ورزشکاران")
+        event = st.dataframe(
+            df,
+            column_config=column_configuration,
+            use_container_width=True,
+            hide_index=True,
+            on_select="rerun",
+            selection_mode="multi-row",
+        )
+    with timelime:
+        config = Config(dark_mode=True, locale="fa", color_primary="#ff4b4b",
+                color_primary_light="#ff9494", selection_mode="range",closed_view="button",
+                should_highlight_weekends=True, always_open=True,
+                )
+
+        record_date = datepicker_component(config=config)
 
     st.header("Selected members")
     people = event.selection.rows
@@ -90,6 +101,8 @@ with compare:
         st.line_chart(activity_df)
     else:
         st.markdown("No members selected.")
+
+
 
 @st.dialog("مشخصات ورزشکار")
 def athelthe():

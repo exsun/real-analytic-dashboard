@@ -4,7 +4,7 @@ import pandas as pd
 import plotly.express as px
 from persiantools.jdatetime import JalaliDate
 import datetime
-from utils.database import listAthletes, listAthletesHistory, insertRecord, listAthleteRecordsByCategory, listAthleteRecordsByCategoryByName, listAthleteRecordsByName
+from utils.database import listAthletes, insertRecord, listAthleteRecordsByCategory, listAthleteRecordsByCategoryByName, listAthleteRecordsByName
 from components.charts import bar_line_plot
 from persiantools.jdatetime import JalaliDate, JalaliDateTime
 
