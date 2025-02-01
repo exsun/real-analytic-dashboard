@@ -1,7 +1,14 @@
 @import url('https://fonts.cdnfonts.com/css/dana');
-
-html, body, [class*="css"]  {
+body {
+    margin: 0px;
     font-family: 'dana', sans-serif;
+    font-weight: 400;
+    line-height: 1.6;
+    color: rgb(250, 250, 250);
+    background-color: rgb(14, 17, 23);
+    text-size-adjust: 100%;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    -webkit-font-smoothing: auto;
     direction: RTL;
     unicode-bidi: bidi-override;
     text-align: right;
@@ -32,7 +39,87 @@ h1, h2, h3, h4, h5, h6 {
     justify-items: end;
 }
 
-.stTextInput, .stSelectbox .stWidgetLabel {
+.stTextInput, .stSelectbox, .stWidgetLabel {
     direction: rtl;
     text-align: right;
+}
+.st-emotion-cache-17oy5c7:first-child, .st-emotion-cache-1ayb4c9:first-child {
+    border-top-left-radius: 0rem;
+    border-bottom-left-radius: 0rem;
+    border-top-right-radius: 0.5rem;
+    border-bottom-right-radius: 0.5rem;
+}
+
+.st-emotion-cache-17oy5c7:last-child, .st-emotion-cache-1ayb4c9:last-child {
+    border-top-left-radius: 0.5rem;
+    border-bottom-left-radius: 0.5rem;
+    border-top-right-radius: 0rem;
+    border-bottom-right-radius: 0rem;
+}
+.st-emotion-cache-1k5fi8b {
+    display: flex;
+    flex-direction: row-reverse;
+    align-self: stretch;
+}
+
+
+.st-emotion-cache-19cfm8f {
+    display: flex;
+    flex-flow: row;
+    -webkit-box-align: center;
+    align-items: center;
+    height: 2.5rem;
+    border-width: 1px;
+    border-style: solid;
+    border-color: rgb(14, 17, 23);
+    transition-duration: 200ms;
+    transition-property: border;
+    transition-timing-function: cubic-bezier(0.2, 0.8, 0.4, 1);
+    border-radius: 0.5rem;
+    overflow: hidden;
+    gap: 0.5rem;
+}
+/* 
+.st-emotion-cache-15ecox0 {
+    position: absolute;
+    top: 1.25rem;
+    left: 1.25rem;
+    display: flex;
+    flex-flow: row-reverse wrap;
+    -webkit-box-align: start;
+    align-items: center;
+
+
+} */
+
+/* .st-emotion-cache-hzo1qh {
+    position: fixed;
+    top: 1.25rem;
+    right: 1.5rem;
+    z-index: 999990;
+    display: flex;
+    -webkit-box-pack: end;
+    justify-content: end;
+    -webkit-box-align: end;
+    align-items: center;
+    transform: rotate(180deg);
+} */
+
+.st-emotion-cache-1ysmvgn {
+    position: relative;
+    top: 0.125rem;
+    background-color: rgb(38, 39, 48);
+    z-index: 999991;
+    min-width: 0px;
+    max-width: 0px;
+    transform: translateX(336px);
+    transition: transform 300ms, min-width 300ms, max-width 300ms;
+}
+.st-emotion-cache-17m6xoq, .st-emotion-cache-1cl1wgo {
+    display: block;
+    transition: left 300ms;
+    color: rgb(250, 250, 250);
+    line-height: 0;
+    transform: rotate(180deg);
+
 }
