@@ -7,13 +7,40 @@ from st_supabase_connection import SupabaseConnection, execute_query
 def listAthletes():
     data = execute_query(st.session_state["client"]
                         .table("athletes")
-                        .select('athlete_id, name, weight, height, age')
-                        .order(column="created_at"),
+                        .select('athlete_id, name, weight, height, age, image_url')
+                        .order(column="weight"),
                         ttl=0)
     return data.data
 
 @st.cache_resource
-def listAthletesHistory(athlete_id):
+def getAthleteByName(athlete_name):
+    data = execute_query(st.session_state["client"]
+                        .table("athletes")
+                        .select('athlete_id, name, weight, height, age')
+                        .eq("name",athlete_name),
+                        ttl=0)
+    return data.data
+
+@st.cache_resource
+def listAthletesWithHistory():
+    test_results = execute_query(st.session_state["client"]
+                                .table("athletes")
+                                .select('name, weight, height, test_results(test_name, test_category, raw_data)'),
+                                ttl=0)
+    return test_results.data
+
+def FilterRecordsByAthleteId(athletes_id):
+    print("FilterRecordsByAthleteId", athletes_id)
+
+    athletes_records = execute_query(st.session_state["client"]
+                                .table("test_results")
+                                .select('athlete_id, test_date, test_name, test_category, raw_data, athlete_name:athletes(name)')
+                                .filter("athlete_id","in",athletes_id),
+                                 ttl=0)
+    return athletes_records.data
+
+@st.cache_resource
+def listAthleteRecords(athlete_id):
     test_results = execute_query(st.session_state["client"]
                                 .table("test_results")
                                 .select('*')
@@ -64,5 +91,15 @@ def listAthleteRecordsByName(athlete_id, test_name):
                                 .eq("test_name", test_name)
                                 .order(column="gregorian_date"),
 
+                                 ttl=0)
+    return test_results.data
+
+
+def listAthletesRecordsByName(test_name):
+    test_results = execute_query(st.session_state["client"]
+                                .table("test_results")
+                                .select('athlete_id, test_date, gregorian_date, test_name, test_category, raw_data, athlete_name:athletes(name)')
+                                .eq("test_name", test_name)
+                                .order(column="gregorian_date"),
                                  ttl=0)
     return test_results.data
