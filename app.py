@@ -37,6 +37,9 @@ if "record_data" not in st.session_state:
     st.session_state.record_data = {}
 
 
+st.markdown(f'<link rel="preload" href="./assets/fonts/dana/woff2/Dana-Bold.woff2" as="font" type="font/woff2" crossorigin="">', unsafe_allow_html=True)
+
+
 def local_css(file_name):
     with open(file_name) as f:
         st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
