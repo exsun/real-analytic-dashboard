@@ -26,6 +26,7 @@ import string
 import time
 from components.charts import bar_line_plot, multi_bar_line_plot
 from components.metrics import EXERCISE_OPTIONS, REP_PERCENTAGE_DATA
+from streamlit_image_select import image_select
 
 
 # def strenght_history(results):
@@ -88,30 +89,144 @@ from components.metrics import EXERCISE_OPTIONS, REP_PERCENTAGE_DATA
         
 
 #     # st.subheader(f"تاریخ منتخب از {record_date['from']:%y/%m/%d} تا {record_date['to']:%y/%m/%d}")
+
+def visual_records_by_athlete(athletes, athletes_name, test_name, title, xaxis_title, yaxis_title):
+        
+
+    records = listAthletesRecordsByName(test_name=test_name)
+    if records:
+
+        records_df = pd.DataFrame(records)
+        athlete_id = athletes[athletes["name"].isin(athletes_name)]['athlete_id']
+
+        # athletes_id
+        selected_records = records_df[records_df["athlete_id"].isin(athlete_id)]
+
+        # Extract the name from athlete_name
+
+        selected_records["athlete_name"] = selected_records["athlete_name"].apply(lambda x: x["name"])
+        selected_records[yaxis_title] = selected_records["raw_data"].apply(lambda x: x[yaxis_title])
+
+        grouped_df = selected_records.groupby(["athlete_name", "test_date"])[yaxis_title].sum().reset_index()
+        athletes_list = grouped_df["athlete_name"].unique().tolist()
+        dates_value = sorted(grouped_df["test_date"].unique().tolist())
+
+        athlete_data = {athlete: [0] * len(dates_value) for athlete in athletes_list}  # Initialize with zeros
+        for _, row in grouped_df.iterrows():
+            athlete = row["athlete_name"]
+            date_value = row["test_date"]
+            score = row[yaxis_title]
+            
+            if date_value in dates_value:
+                index = dates_value.index(date_value)
+                athlete_data[athlete][index] = score
+
+        option_map = {
+            "chart": ":material/monitoring:",
+            "table": ":material/table:",
+        }
+    
+        selection = st.segmented_control(
+            "",
+            options=option_map.keys(),
+            format_func=lambda option: option_map[option],
+            selection_mode="single",
+            default="chart",
+            key=f"{title}-seletion-view"
+        )
+
+        if selection == "chart":
+            # Call the updated function to generate the chart
+            multi_bar_line_plot(
+                x=dates_value, 
+                y=athlete_data, 
+                xaxis_title=xaxis_title, 
+                yaxis_title=yaxis_title, 
+                title=title, 
+                athletes=athletes_list
+            )
+        else: 
+            st.dataframe(selected_records)
+    else:
+        st.info(f"داده ای برای تست {title} وجود ندارد")
+
+
+
+
+@st.fragment
+def stamina_records_chart():
+    with st.expander("استقامت"):
+        st.subheader("استقامت")
+        visual_records_by_athlete(athletes, athletes_name, test_name="۶-دقیقه", title="تست ۶-دقیقه", xaxis_title="تاریخ", yaxis_title="vo2max")
+        visual_records_by_athlete(athletes, athletes_name, test_name="cooper", title="cooper ", xaxis_title="تاریخ", yaxis_title="vo2max")
+        
+@st.fragment
+def strength_records_chart():
+    with st.expander("قدرت"):
+        st.subheader("قدرت")
+        visual_records_by_athlete(athletes, athletes_name,test_name="قدرت نسبی", title="قدرت نسبی ", xaxis_title="تاریخ", yaxis_title="estimate_power")
+        
+@st.fragment
+def anerobic_records_chart():
+    with st.expander("بی هوازی"):
+        st.subheader("بی هوازی")
+        visual_records_by_athlete(athletes, athletes_name,test_name="performance_decrease", xaxis_title="تاریخ" ,yaxis_title="افت عملکرد", title="آزمون ۸۰۰−۲۰۰ متر")
+        
+@st.fragment
+def agility_records_chart():
+    with st.expander("چابکی"):
+        st.subheader("چابکی")
+        visual_records_by_athlete(athletes, athletes_name,test_name="wrestle_specific_duration", xaxis_title="تاریخ" ,yaxis_title="مدت زمان", title="آزمون چابکی ویژه کشتی")
+        visual_records_by_athlete(athletes, athletes_name,test_name="bear_duration", xaxis_title="تاریخ" ,yaxis_title="مدت زمان", title="آزمون خرسی")
+        visual_records_by_athlete(athletes, athletes_name,test_name="zone_duration", xaxis_title="تاریخ" ,yaxis_title="مدت زمان", title="آزمون منطقه")
+        visual_records_by_athlete(athletes, athletes_name,test_name="T_duration", xaxis_title="تاریخ" ,yaxis_title="مدت زمان", title="آزمون T (ثانیه)")
+        visual_records_by_athlete(athletes, athletes_name,test_name="illinois_duration", xaxis_title="تاریخ" ,yaxis_title="مدت زمان", title="آزمون illinois (ثانیه)")
+
+
+
+
+@st.fragment
+def felexibility_records_chart():
+    with st.expander("انعطاف پذیری"):
+        st.subheader("انعطاف پذیری")
+        visual_records_by_athlete(athletes, athletes_name,test_name="sit_reach_distance", xaxis_title="تاریخ" ,yaxis_title="فاصله (سانتی متر)", title=" آزمون sit & reach")
+        visual_records_by_athlete(athletes, athletes_name,test_name="shoulder_lift_distance", xaxis_title="تاریخ" ,yaxis_title="فاصله (سانتی متر)", title=" آزمون بالا آوردن شانه")
+        visual_records_by_athlete(athletes, athletes_name,test_name="upper_body_opening_distance", xaxis_title="تاریخ" ,yaxis_title="فاصله (سانتی متر)", title=" آزمون باز شدن بالا تنه")
+
+     
+     
 with st.container():
     athletes = pd.DataFrame(listAthletes())
-    # name, date = st.columns([0.8, 0.2])
-    # with name:
-    athletes_name = st.segmented_control(
-        "ورزشکار", athletes["name"], selection_mode="multi"
-    )
-    # option_map = {
-    #     0: ":material/add:",
-    #     1: ":material/zoom_in:",
-    #     2: ":material/zoom_out:",
-    #     3: ":material/zoom_out_map:",
-    # }
-    # selection = st.pills(
-    #     "ورزشکار", athletes["name"],
-    #     selection_mode="single",
-    # )
-    # with date:
-    #     config = Config(dark_mode=True, locale="fa", color_primary="#ff4b4b",
-    #                     color_primary_light="#ff9494", selection_mode="range",closed_view="button",
-    #                     should_highlight_weekends=True, always_open=False,
-    #                     )
+    # img = image_select("Label", athletes["image_url"].to_list())
+   
+    # Display the pills selection.
+    with st.sidebar: 
+        athletes_name = st.pills(
+            "ورزشکاران",
+            options=athletes["name"],
+            selection_mode="multi",
+        )
+        config = Config(dark_mode=True, locale="fa", color_primary="#ff4b4b",
+                        color_primary_light="#ff9494", selection_mode="range",closed_view="button",
+                        should_highlight_weekends=True, always_open=True,
+                        )
 
-    #     record_date = datepicker_component(config=config)
+        record_date = datepicker_component(config=config)
+
+
+
+
+    cols = st.columns(2)
+    with cols[0]:
+        stamina_records_chart()
+
+        agility_records_chart()
+    with cols[1]:
+        strength_records_chart()
+
+        anerobic_records_chart()
+
+
 
 
 
@@ -125,7 +240,6 @@ def athlete_cart(i):
     image_url = athletes.loc[athletes["name"] == athletes_name[i], "image_url"].values[0] if not athletes.loc[athletes["name"] == athletes_name[i], "image_url"].empty else ""
     
     st.image(image_url, width=200)
-    # with image:
 
    
 
@@ -147,65 +261,5 @@ if athletes_name:
     selected_athletes(grid)
 
 
-def visual_records_by_athlete(athletes, athletes_name, test_name):
-        
-
-    records = listAthletesRecordsByName(test_name=test_name)
-    if records:
-
-        cooper_df = pd.DataFrame(records)
-        print(athletes)
-        athlete_id = athletes[athletes["name"].isin(athletes_name)]['athlete_id']
-        print(athlete_id)
-
-        # athletes_id
-        cooper_records = cooper_df[cooper_df["athlete_id"].isin(athlete_id)]
-
-        # Extract the name from athlete_name
-
-        cooper_records["athlete_name"] = cooper_records["athlete_name"].apply(lambda x: x["name"])
-        cooper_records["vo2max"] = cooper_records["raw_data"].apply(lambda x: x["vo2max"])
-        print(cooper_records)
-
-        grouped_df = cooper_records.groupby(["athlete_name", "test_date"])["vo2max"].sum().reset_index()
-        print(grouped_df)
-        athletes_list = grouped_df["athlete_name"].unique().tolist()
-        dates_value = sorted(grouped_df["test_date"].unique().tolist())
-
-        athlete_data = {athlete: [0] * len(dates_value) for athlete in athletes_list}  # Initialize with zeros
-        for _, row in grouped_df.iterrows():
-            athlete = row["athlete_name"]
-            date_value = row["test_date"]
-            score = row["vo2max"]
-            
-            if date_value in dates_value:
-                index = dates_value.index(date_value)
-                athlete_data[athlete][index] = score
-
-        print(athlete_data)
-
-        # Call the updated function to generate the chart
-        multi_bar_line_plot(
-            x=dates_value, 
-            y=athlete_data, 
-            xaxis_title="تاریخ", 
-            yaxis_title="vo2max", 
-            title="تست ۶-دقیقه", 
-            athletes=athletes_list
-        )
-    else:
-        st.info(f"داده ای برای تست {test_name} وجود ندارد")
 
 
-
-
-@st.fragment
-def stamina_records_chart():
-    with st.container(border=True):
-        visual_records_by_athlete(athletes, athletes_name, test_name="۶-دقیقه")
-        visual_records_by_athlete(athletes, athletes_name, test_name="cooper")
-        
-
-
-
-stamina_records_chart()
