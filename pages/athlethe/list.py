@@ -89,6 +89,27 @@ from streamlit_image_select import image_select
         
 
 #     # st.subheader(f"تاریخ منتخب از {record_date['from']:%y/%m/%d} تا {record_date['to']:%y/%m/%d}")
+import time
+
+
+
+def athlete_cart(i):
+
+    image_url = athletes.loc[athletes["name"] == athletes_name[i], "image_url"].values[0] if not athletes.loc[athletes["name"] == athletes_name[i], "image_url"].empty else ""
+    
+    st.image(image_url, width=200)
+
+   
+
+
+@st.fragment
+def selected_athletes(grid):
+    for i in range(len(athletes_name)):
+        container = grid[i].container(border=True)
+
+
+        with container:
+            athlete_cart(i)
 
 def visual_records_by_athlete(athletes, athletes_name, test_name, title, xaxis_title, yaxis_title):
         
@@ -213,6 +234,13 @@ with st.container():
 
         record_date = datepicker_component(config=config)
 
+if athletes_name:
+    row1 = st.columns(len(athletes_name))
+    grid = [col.container(height=300, border=False) for col in row1]
+    safe_grid = [card.empty() for card in grid]
+
+    selected_athletes(grid)
+
 
 
 
@@ -231,34 +259,6 @@ with st.container():
 
 
 
-import time
-
-
-
-def athlete_cart(i):
-
-    image_url = athletes.loc[athletes["name"] == athletes_name[i], "image_url"].values[0] if not athletes.loc[athletes["name"] == athletes_name[i], "image_url"].empty else ""
-    
-    st.image(image_url, width=200)
-
-   
-
-
-@st.fragment
-def selected_athletes(grid):
-    for i in range(len(athletes_name)):
-        container = grid[i].container(border=True)
-
-
-        with container:
-            athlete_cart(i)
-
-if athletes_name:
-    row1 = st.columns(len(athletes_name))
-    grid = [col.container(height=300, border=False) for col in row1]
-    safe_grid = [card.empty() for card in grid]
-
-    selected_athletes(grid)
 
 
 
