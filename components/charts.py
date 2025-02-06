@@ -55,7 +55,7 @@ def multi_bar_line_plot(x, y, xaxis_title, yaxis_title, title, athletes):
 
     # Define a color palette with enough distinct colors for athletes
     color_palette = [
-        'rgb(0, 128, 0)', 'rgb(255, 20, 147)', 'rgb(12, 122, 200)', 'rgb(255, 100, 100)', 'rgb(100, 150, 255)',
+        '#005B41', '#22177A', 'rgb(12, 122, 200)', 'rgb(255, 100, 100)', 'rgb(100, 150, 255)',
         'rgb(255, 165, 0)', 'rgb(128, 0, 128)'
     ]
     

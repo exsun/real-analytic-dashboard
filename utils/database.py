@@ -13,6 +13,15 @@ def listAthletes():
     return data.data
 
 @st.cache_resource
+def listTests():
+    data = execute_query(st.session_state["client"]
+                        .table("tests")
+                        .select('test_name')
+                        .order(column="created_at"),
+                        ttl=0)
+    return data.data
+
+@st.cache_resource
 def getAthleteByName(athlete_name):
     data = execute_query(st.session_state["client"]
                         .table("athletes")
