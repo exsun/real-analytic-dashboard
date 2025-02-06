@@ -14,6 +14,7 @@ import plotly.graph_objects as go
 from st_supabase_connection import execute_query
 from utils.database import (
     listAthletes, 
+    listTests,
     getAthleteByName,
     listAthleteRecords, 
     listAthletesWithHistory, 
@@ -22,19 +23,11 @@ from utils.database import (
     FilterRecordsByAthleteId
     )
 
-from persiantools.jdatetime import JalaliDate
-from datetime import datetime
 
 from streamlit_nej_datepicker import datepicker_component, Config
-import jdatetime
-
 import numpy as np
 from datetime import date, timedelta
-import string
-import time
 from components.charts import bar_line_plot, multi_bar_line_plot
-from components.metrics import EXERCISE_OPTIONS, REP_PERCENTAGE_DATA
-from streamlit_image_select import image_select
 
 import time
 
@@ -46,6 +39,12 @@ st.set_page_config(
     # initial_sidebar_state="expanded",
     menu_items={}
 )
+
+def local_css(file_name):
+    with open(file_name) as f:
+        st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+
+local_css("assets/styles/custom.css")
 
 try:
     st.session_state["client"] = st.connection(
@@ -67,40 +66,6 @@ if "record_data" not in st.session_state:
     st.session_state.record_data = {}
 
 
-def local_css(file_name):
-    with open(file_name) as f:
-        st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
-
-local_css("assets/styles/custom.css")
-st.markdown(
-        """
-        <style>
-@font-face {
-    font-family: dana;
-    font-style: normal;
-    font-weight: 10;
-    src: url('../fonts/dana/woff2/Dana-Hairline.woff2') format('woff2'),
-    url('../fonts/dana/woff/Dana-Hairline.woff') format('woff');
-}
-html, body, [class*="css"]   {
-    margin: 0px;
-    font-family: 'dana', sans-serif;
-    font-weight: 400;
-    line-height: 1.6;
-    color: rgb(250, 250, 250);
-    background-color: rgb(14, 17, 23);
-    text-size-adjust: 100%;
-    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
-    -webkit-font-smoothing: auto;
-    direction: RTL;
-    unicode-bidi: bidi-override;
-    text-align: right;
-}
-    </style>
-
-    """,
-        unsafe_allow_html=True,
-)
 # # Widgets shared by all the pages
 # strength = st.Page(
 #     "pages/form/strength.py", title="قدرت", icon=":material/notification_important:"
@@ -182,7 +147,10 @@ def athlete_cart(i):
 
 
 @st.fragment
-def selected_athletes(grid):
+def selected_athletes(athletes_name):
+    row1 = st.columns(len(athletes_name))
+    grid = [col.container(height=300, border=False) for col in row1]
+    safe_grid = [card.empty() for card in grid]
     for i in range(len(athletes_name)):
         container = grid[i].container(border=True)
 
@@ -190,6 +158,8 @@ def selected_athletes(grid):
         with container:
             athlete_cart(i)
 
+def column_change():
+    print("selected_drill")
 def visual_records_by_athlete(athletes, athletes_name, test_name, title, xaxis_title, yaxis_title):
         
 
@@ -226,7 +196,7 @@ def visual_records_by_athlete(athletes, athletes_name, test_name, title, xaxis_t
             "table": ":material/table:",
         }
     
-        selection = st.segmented_control(
+        selection = st.pills(
             "",
             options=option_map.keys(),
             format_func=lambda option: option_map[option],
@@ -246,7 +216,21 @@ def visual_records_by_athlete(athletes, athletes_name, test_name, title, xaxis_t
                 athletes=athletes_list
             )
         else: 
-            st.dataframe(selected_records)
+            st.data_editor(
+                selected_records,
+                column_config={
+                    "athlete_name": st.column_config.TextColumn(
+                        "athlete_name",
+                        help="Streamlit **widget** commands 🎈",
+                        default="st.",
+                        max_chars=50,
+                      
+                    )
+                },
+                hide_index=True,
+                num_rows="dynamic",
+                on_change=column_change
+                )
     else:
         st.info(f"داده ای برای تست {title} وجود ندارد")
 
@@ -255,7 +239,7 @@ def visual_records_by_athlete(athletes, athletes_name, test_name, title, xaxis_t
 
 @st.fragment
 def stamina_records_chart():
-    with st.expander("استقامت"):
+    with st.expander("استقامت", expanded=True):
         st.subheader("استقامت")
         visual_records_by_athlete(athletes, athletes_name, test_name="۶-دقیقه", title="تست ۶-دقیقه", xaxis_title="تاریخ", yaxis_title="vo2max")
         visual_records_by_athlete(athletes, athletes_name, test_name="cooper", title="cooper ", xaxis_title="تاریخ", yaxis_title="vo2max")
@@ -293,45 +277,53 @@ def felexibility_records_chart():
         visual_records_by_athlete(athletes, athletes_name,test_name="shoulder_lift_distance", xaxis_title="تاریخ" ,yaxis_title="فاصله (سانتی متر)", title=" آزمون بالا آوردن شانه")
         visual_records_by_athlete(athletes, athletes_name,test_name="upper_body_opening_distance", xaxis_title="تاریخ" ,yaxis_title="فاصله (سانتی متر)", title=" آزمون باز شدن بالا تنه")
 
-     
-     
-with st.container():
-    athletes = pd.DataFrame(listAthletes())
-    # img = image_select("Label", athletes["image_url"].to_list())
-   
-    # Display the pills selection.
-    with st.sidebar: 
+
+
+
+
+# with st.sidebar: 
+left, center, right = st.columns([1,3,1])
+with left:
+
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        athletes = pd.DataFrame(listAthletes())
         athletes_name = st.pills(
-            "ورزشکاران",
+            "",
             options=athletes["name"],
             selection_mode="multi",
+            key="athletes_name"
+
         )
-        config = Config(dark_mode=True, locale="fa", color_primary="#ff4b4b",
-                        color_primary_light="#ff9494", selection_mode="range",closed_view="button",
-                        should_highlight_weekends=True, always_open=True,
-                        )
+    with col2:
+        tests = pd.DataFrame(listTests())
+        tests_name = st.pills(
+            "",
+            options=tests["test_name"],
+            selection_mode="multi",
+            key="tests_name"
+        )
 
-        record_date = datepicker_component(config=config)
-
-if athletes_name:
-    row1 = st.columns(len(athletes_name))
-    grid = [col.container(height=300, border=False) for col in row1]
-    safe_grid = [card.empty() for card in grid]
-
-    selected_athletes(grid)
-
-
-
-
-    cols = st.columns(2)
-    with cols[0]:
+with center:
+    if athletes_name:
+        # selected_athletes(athletes_name)
+        
         stamina_records_chart()
-
         agility_records_chart()
-    with cols[1]:
         strength_records_chart()
-
         anerobic_records_chart()
+
+with right:
+    config = Config(dark_mode=True, locale="fa", color_primary="#ff4b4b",
+                    color_primary_light="#ff9494", selection_mode="range",closed_view="button",
+                    should_highlight_weekends=True, always_open=True,
+                    )
+
+    record_date = datepicker_component(config=config)
+
+
+
 
 
 
