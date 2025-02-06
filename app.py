@@ -283,9 +283,9 @@ def felexibility_records_chart():
 
 # with st.sidebar: 
 left, center, right = st.columns([1,3,1])
-with left:
+with st.sidebar:
 
-    col1, col2 = st.columns(2)
+    col1, col2 = st.columns([2,1])
     
     with col1:
         athletes = pd.DataFrame(listAthletes())
@@ -296,31 +296,28 @@ with left:
             key="athletes_name"
 
         )
-    with col2:
-        tests = pd.DataFrame(listTests())
-        tests_name = st.pills(
-            "",
-            options=tests["test_name"],
-            selection_mode="multi",
-            key="tests_name"
-        )
-
-with center:
-    if athletes_name:
-        # selected_athletes(athletes_name)
-        
-        stamina_records_chart()
-        agility_records_chart()
-        strength_records_chart()
-        anerobic_records_chart()
-
-with right:
+        # tests = pd.DataFrame(listTests())
+        # tests_name = st.pills(
+        #     "",
+        #     options=tests["test_name"],
+        #     selection_mode="multi",
+        #     key="tests_name"
+        # )
     config = Config(dark_mode=True, locale="fa", color_primary="#ff4b4b",
                     color_primary_light="#ff9494", selection_mode="range",closed_view="button",
                     should_highlight_weekends=True, always_open=True,
                     )
 
     record_date = datepicker_component(config=config)
+
+
+if athletes_name:
+    # selected_athletes(athletes_name)
+    
+    stamina_records_chart()
+    agility_records_chart()
+    strength_records_chart()
+    anerobic_records_chart()
 
 
 
