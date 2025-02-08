@@ -107,8 +107,16 @@ def listAthleteRecordsByName(athlete_id, test_name):
 def listAthletesRecordsByName(test_name):
     test_results = execute_query(st.session_state["client"]
                                 .table("test_results")
-                                .select('athlete_id, test_date, gregorian_date, test_name, test_category, raw_data, athlete_name:athletes(name)')
+                                .select('result_id','athlete_id, test_date, gregorian_date, test_name, test_category, raw_data, updated_at, athlete_data:athletes(name, image_url)')
                                 .eq("test_name", test_name)
                                 .order(column="gregorian_date"),
                                  ttl=0)
     return test_results.data
+
+def deleteListRecords(records_id):
+    print(records_id)
+    deleted_data = execute_query(st.session_state["client"]
+                                .table("test_results")
+                                .delete().in_("result_id",records_id)
+                                )
+    return deleted_data.data

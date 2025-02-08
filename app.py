@@ -20,7 +20,8 @@ from utils.database import (
     listAthletesWithHistory, 
     listAthletesRecordsByName,
     listAthleteRecordsByCategory,
-    FilterRecordsByAthleteId
+    FilterRecordsByAthleteId,
+    deleteListRecords
     )
 
 
@@ -40,11 +41,6 @@ st.set_page_config(
     menu_items={}
 )
 
-def local_css(file_name):
-    with open(file_name) as f:
-        st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
-
-local_css("assets/styles/custom.css")
 
 try:
     st.session_state["client"] = st.connection(
@@ -65,6 +61,11 @@ except Exception as e:
 if "record_data" not in st.session_state:
     st.session_state.record_data = {}
 
+def local_css(file_name):
+    with open(file_name) as f:
+        st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+
+local_css("assets/styles/custom.css")
 
 # # Widgets shared by all the pages
 # strength = st.Page(
@@ -130,7 +131,10 @@ if "record_data" not in st.session_state:
 
 # pg.run()
 
-
+def convert_to_jalali(date_str):
+    dt = datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%S.%f")  # Convert to datetime object
+    jalali_date = JalaliDate.to_jalali(dt.year, dt.month, dt.day)  # Convert to Jalali
+    return f"{jalali_date.year}-{jalali_date.month:02d}-{jalali_date.day:02d} {dt.hour:02d}:{dt.minute:02d}:{dt.second:02d}"
 
 
 
@@ -158,8 +162,13 @@ def selected_athletes(athletes_name):
         with container:
             athlete_cart(i)
 
-def column_change():
-    print("selected_drill")
+def update_data(*args, **kwargs):
+    copy_data = args[0].copy()
+    filtered_df = copy_data.loc[st.session_state[kwargs['records_data']]['deleted_rows']]  
+    deleted_data = deleteListRecords(filtered_df['result_id'].to_list())
+    st.toast(st.session_state[kwargs['records_data']])
+
+@st.fragment
 def visual_records_by_athlete(athletes, athletes_name, test_name, title, xaxis_title, yaxis_title):
         
 
@@ -167,14 +176,17 @@ def visual_records_by_athlete(athletes, athletes_name, test_name, title, xaxis_t
     if records:
 
         records_df = pd.DataFrame(records)
+      
         athlete_id = athletes[athletes["name"].isin(athletes_name)]['athlete_id']
-
         # athletes_id
         selected_records = records_df[records_df["athlete_id"].isin(athlete_id)]
 
         # Extract the name from athlete_name
 
-        selected_records["athlete_name"] = selected_records["athlete_name"].apply(lambda x: x["name"])
+        selected_records["athlete_name"] = selected_records["athlete_data"].apply(lambda x: x["name"])
+        selected_records["athlete_image"] = selected_records["athlete_data"].apply(lambda x: x["image_url"])
+        selected_records["updated_datetime"] = selected_records["updated_at"].apply(convert_to_jalali)
+
         selected_records[yaxis_title] = selected_records["raw_data"].apply(lambda x: x[yaxis_title])
 
         grouped_df = selected_records.groupby(["athlete_name", "test_date"])[yaxis_title].sum().reset_index()
@@ -204,8 +216,8 @@ def visual_records_by_athlete(athletes, athletes_name, test_name, title, xaxis_t
             default="chart",
             key=f"{title}-seletion-view"
         )
-
-        if selection == "chart":
+        chart , table = st.columns(2, vertical_alignment="center")
+        with chart:
             # Call the updated function to generate the chart
             multi_bar_line_plot(
                 x=dates_value, 
@@ -215,21 +227,42 @@ def visual_records_by_athlete(athletes, athletes_name, test_name, title, xaxis_t
                 title=title, 
                 athletes=athletes_list
             )
-        else: 
+        with table:
+            selected_records = selected_records.reset_index(drop=True)
             st.data_editor(
-                selected_records,
+                selected_records.filter(items=['athlete_image', 'athlete_name', 'test_date', 'test_category','test_name',yaxis_title, 'updated_datetime']),  
+                hide_index=None,
+                disabled=('athlete_image'),
                 column_config={
-                    "athlete_name": st.column_config.TextColumn(
-                        "athlete_name",
-                        help="Streamlit **widget** commands 🎈",
-                        default="st.",
-                        max_chars=50,
-                      
-                    )
+                    "athlete_image": st.column_config.ImageColumn(
+                        "تصویر",
+                        help="athlete_image 🎈",
+                        pinned=True,
+                    ),
+                    "athlete_name": st.column_config.SelectboxColumn(
+                        "ورزشکار",
+                        help="athlete_name 🎈",
+                        options=athletes["name"],
+                        pinned=True,
+                    ),
+                    "test_date": st.column_config.TextColumn(
+                        "تاریخ",
+                        help="تاریخ 🎈",
+                    ),
+                    yaxis_title: st.column_config.NumberColumn(
+                        yaxis_title,
+                        help=f"{yaxis_title} 🎈",
+                    ),
+                    "updated_datetime": st.column_config.TextColumn(
+                        "آخرین تغییرات",
+                        help="updated_datetime 🎈",
+                    ),
                 },
-                hide_index=True,
                 num_rows="dynamic",
-                on_change=column_change
+                on_change=update_data,
+                args=(selected_records,),
+                kwargs={"records_data":f'{test_name}-records_data'},
+                key=f'{test_name}-records_data'
                 )
     else:
         st.info(f"داده ای برای تست {title} وجود ندارد")
@@ -241,14 +274,43 @@ def visual_records_by_athlete(athletes, athletes_name, test_name, title, xaxis_t
 def stamina_records_chart():
     with st.expander("استقامت", expanded=True):
         st.subheader("استقامت")
-        visual_records_by_athlete(athletes, athletes_name, test_name="۶-دقیقه", title="تست ۶-دقیقه", xaxis_title="تاریخ", yaxis_title="vo2max")
-        visual_records_by_athlete(athletes, athletes_name, test_name="cooper", title="cooper ", xaxis_title="تاریخ", yaxis_title="vo2max")
-        
+        test_options = {
+            "۶-دقیقه": {
+                "title":"تست ۶-دقیقه", "xaxis_title":"تاریخ", "yaxis_title":"vo2max"
+            }, 
+            "cooper": {"title":"cooper ", "xaxis_title":"تاریخ", "yaxis_title":"vo2max"}
+               
+        }
+        # print(test_options[0])
+        selection = st.pills(
+            "",
+            options=test_options,
+            selection_mode="single",
+            default="۶-دقیقه",
+            key=f"استقامت"
+        )
+        if selection:
+            visual_records_by_athlete(athletes, athletes_name, test_name=selection, title=test_options[selection]["title"], xaxis_title=test_options[selection]["xaxis_title"], yaxis_title=test_options[selection]["yaxis_title"])
+            
 @st.fragment
 def strength_records_chart():
     with st.expander("قدرت"):
         st.subheader("قدرت")
-        visual_records_by_athlete(athletes, athletes_name,test_name="قدرت نسبی", title="قدرت نسبی ", xaxis_title="تاریخ", yaxis_title="estimate_power")
+        test_options = {
+            "قدرت نسبی": {"title":"قدرت نسبی ", "xaxis_title":"تاریخ", "yaxis_title":"estimate_power"}
+               
+        }
+        # print(test_options[0])
+        selection = st.pills(
+            "",
+            options=test_options,
+            selection_mode="single",
+            default="قدرت نسبی",
+            key=f"قدرت"
+        )
+        if selection:
+            visual_records_by_athlete(athletes, athletes_name, test_name=selection, title=test_options[selection]["title"], xaxis_title=test_options[selection]["xaxis_title"], yaxis_title=test_options[selection]["yaxis_title"])
+            
         
 @st.fragment
 def anerobic_records_chart():
@@ -293,6 +355,7 @@ with st.sidebar:
             "",
             options=athletes["name"],
             selection_mode="multi",
+            default=athletes["name"],
             key="athletes_name"
 
         )
