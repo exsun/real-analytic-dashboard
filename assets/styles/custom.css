@@ -114,6 +114,7 @@ h1, h2, h3, h4, h5, h6 {
     border-top-right-radius: 0rem;
     border-bottom-right-radius: 0rem;
 }
+
 .st-emotion-cache-1k5fi8b {
     display: flex;
     flex-direction: row-reverse;
@@ -175,19 +176,27 @@ h1, h2, h3, h4, h5, h6 {
 }
 .st-emotion-cache-17m6xoq, .st-emotion-cache-1cl1wgo {
     display: block;
-    transition: left 300ms;
+    transition: right 300ms;
     color: rgb(250, 250, 250);
     line-height: 0;
     transform: rotate(180deg);
 
 }
-
-.stButtonGroup {
+.st-emotion-cache-1y9tyez{
+    position: fixed;
+    right: 2rem;
+    top: 20px;
+    transition: left 300ms;
+    color: rgb(250, 250, 250);
+    line-height: 0;
+    transform: rotate(180deg);
+}
+/* .stButtonGroup {
     direction: rtl;
     display: flex;
     flex-direction: row-reverse;
     align-self: stretch;
-}
+} */
 
 .st-emotion-cache-1cvow4s h1,
  .st-emotion-cache-1cvow4s h2, 
@@ -230,32 +239,3 @@ h1, h2, h3, h4, h5, h6 {
 
 
 
-
-
-/* Make Left & Right Panels Sticky */
-div[data-testid="stColumn"]:nth-of-type(1), /* Left Column */
-div[data-testid="stColumn"]:nth-of-type(3) { /* Right Column */
-    position: sticky;
-    overflow-y: auto;
-    display: grid;
-
-}
-
-/* Make Center Content Scrollable */
-div[data-testid="stColumn"]:nth-of-type(2) { /* Center Column */
-    flex-grow: 1;
-    height: 100vh;
-    overflow-y: auto;
-    padding: 20px;
-}
-/* .st-ae {
-    display: grid;
-    gap: 20px;
-    direction:rtl;
-}
-.stButtonGroup {
-    direction: rtl;
-    display: grid;
-    flex-direction: row-reverse;
-    align-self: stretch;
-} */
