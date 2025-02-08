@@ -37,7 +37,7 @@ def bar_line_plot(x , y, xaxis_title, yaxis_title, title):
         # Display the plot in Streamlit
         st.plotly_chart(fig, key=title, use_container_width=False)
 
-def multi_bar_line_plot(x, y, xaxis_title, yaxis_title, title, athletes):
+def multi_bar_line_plot(athlete_data, xaxis_title, yaxis_title, title, athletes):
     """
     Create a grouped bar-line plot for multiple athletes with unique colors.
 
@@ -62,34 +62,33 @@ def multi_bar_line_plot(x, y, xaxis_title, yaxis_title, title, athletes):
     # Assign colors to athletes dynamically
     athlete_colors = {athlete: color_palette[i % len(color_palette)] for i, athlete in enumerate(athletes)}
 
-    bar_traces = []
-    line_traces = []
-
+  
+    fig = go.Figure()
+    # Add Bar & Line for Each Athlete
     for athlete in athletes:
-        athlete_data = y.get(athlete, [])
-        color = athlete_colors.get(athlete)  # Default color if missing
-        
-        # Create Bar Trace for the athlete
-        bar_traces.append(go.Bar(
-            x=x,
-            y=athlete_data,
+        # Extract only existing dates & values (Exclude missing ones)
+        athlete_dates = list(athlete_data[athlete].keys())  # Dates where data exists
+        athlete_scores = list(athlete_data[athlete].values())  # Scores where data exists
+        athlete_color = athlete_colors[athlete]  # Get assigned color
+
+        # Add Bar Chart
+        fig.add_trace(go.Bar(
+            x=athlete_dates,
+            y=athlete_scores,
             name=f"{athlete} (Bar)",
-            marker=dict(color=color)
+            marker=dict(color=athlete_color),  # Set bar color
+
         ))
 
-        # Create Line Trace for the athlete
-        line_traces.append(go.Scatter(
-            x=x,
-            y=athlete_data,
-            mode='lines+markers',
+        # Add Line Chart
+        fig.add_trace(go.Scatter(
+            x=athlete_dates,
+            y=athlete_scores,
             name=f"{athlete} (Line)",
-            line=dict(color=color, width=2),
-            marker=dict(symbol='circle', size=8)
+            mode="lines+markers",
+            marker=dict(color=athlete_color),  # Set bar color
+            
         ))
-
-    # Combine both bar and line traces in a single figure
-    fig = go.Figure(data=bar_traces + line_traces)
-
     # Update layout properties
     fig.update_layout(
         # width=800,  # Set width in pixels
