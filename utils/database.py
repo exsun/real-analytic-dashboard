@@ -120,3 +120,16 @@ def deleteListRecords(records_id):
                                 .delete().in_("result_id",records_id)
                                 )
     return deleted_data.data
+
+def updateAthleteWeight(athlete_id, updated_athlete):
+    key, value = next(iter(athlete_id.items()))
+
+    updated_data = execute_query(st.session_state["client"]
+                                .table("athletes")
+                                .update(updated_athlete)
+                                .eq(key, value)
+            )
+    # print(athlete_id.keys())
+    # print(athlete_id.values())
+
+    return updated_data.data
