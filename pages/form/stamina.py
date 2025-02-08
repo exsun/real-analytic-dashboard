@@ -63,8 +63,8 @@ with tab1:
             record_date = JalaliDateTime(selected_year, months.index(selected_month) + 1, selected_day, locale="en")
             gregorian_date = record_date.to_gregorian()
             
-            record_date = record_date.strftime("%Y-%m-%d") + " " + selected_time.strftime("%H:%M:%S")
-            gregorian_date = gregorian_date.strftime("%Y-%m-%d")  + " " + selected_time.strftime("%H:%M:%S")
+            record_date = record_date.strftime("%Y-%m-%d")
+            gregorian_date = gregorian_date.strftime("%Y-%m-%d")
 
 
             submitted_6min = st.form_submit_button("محاسبه")
@@ -74,7 +74,7 @@ with tab1:
                 time.sleep(2.5)
             vo2max = calculate_vo2max_6min(distance_6min)
             exercise_data = {
-                "distance_6min": "6-Minute",
+                "distance": distance_6min,
                 "vo2max": vo2max,
             }       
             new_record = {
@@ -83,7 +83,7 @@ with tab1:
                 "test_name": "۶-دقیقه",
                 "test_category": "استقامت",
                 "test_date": record_date,
-                "gregorian_date": gregorian_date
+                "gregorian_date": gregorian_date,
             }
             st.metric(label="VO2Max (اکنون)", value=vo2max)
             
