@@ -35,7 +35,7 @@ def bar_line_plot(x , y, xaxis_title, yaxis_title, title):
             
 
         # Display the plot in Streamlit
-        st.plotly_chart(fig, key=title)
+        st.plotly_chart(fig, key=title, use_container_width=False)
 
 def multi_bar_line_plot(x, y, xaxis_title, yaxis_title, title, athletes):
     """
@@ -92,6 +92,10 @@ def multi_bar_line_plot(x, y, xaxis_title, yaxis_title, title, athletes):
 
     # Update layout properties
     fig.update_layout(
+        # width=800,  # Set width in pixels
+        # height=600,  # Set height in pixels
+        title_font=dict(family="dana, sans-serif", size=24, color="black"),  # Title Font
+        font=dict(family="dana, sans-serif", size=14, color="black"),
         title=title,
         xaxis_title=xaxis_title,
         yaxis_title=yaxis_title,
@@ -101,4 +105,4 @@ def multi_bar_line_plot(x, y, xaxis_title, yaxis_title, title, athletes):
         title_x=0.5,  # Center the title
     )
 
-    st.plotly_chart(fig, use_container_width=True, key=title)
+    st.plotly_chart(fig, use_container_width=False, key=title)
