@@ -13,7 +13,7 @@ def listAthletes():
     return data.data
 
 @st.cache_resource
-def listTests():
+def listRecordCategory():
     data = execute_query(st.session_state["client"]
                         .table("tests")
                         .select('test_name')
@@ -133,3 +133,12 @@ def updateAthleteWeight(athlete_id, updated_athlete):
     # print(athlete_id.values())
 
     return updated_data.data
+
+
+
+
+
+def update_weight(*args, **kwargs):
+
+    updateAthleteWeight(kwargs, {"weight": round(st.session_state.athlete_weight, 1)})
+    
