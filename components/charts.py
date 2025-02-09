@@ -92,7 +92,7 @@ def multi_bar_line_plot(athlete_data, xaxis_title, yaxis_title, title, athletes)
     # Update layout properties
     fig.update_layout(
         # width=800,  # Set width in pixels
-        # height=600,  # Set height in pixels
+        height=600,  # Set height in pixels
         title_font=dict(family="dana, sans-serif", size=24, color="black"),  # Title Font
         font=dict(family="dana, sans-serif", size=14, color="black"),
         title=title,
@@ -100,8 +100,17 @@ def multi_bar_line_plot(athlete_data, xaxis_title, yaxis_title, title, athletes)
         yaxis_title=yaxis_title,
         barmode='group',
         template="plotly_white",
-        xaxis=dict(type="category"),
+        xaxis=dict(
+            type="date",  # ✅ Treat x-axis as real dates (Fix Sorting Issue)
+            tickformat="%Y-%m-%d"  # Format date labels properly
+        ),
         title_x=0.5,  # Center the title
+        legend=dict(
+            orientation="h",
+            x=0,
+            y=1.4  # Move above the chart
+        )
     )
 
-    st.plotly_chart(fig, use_container_width=False, key=title)
+    st.plotly_chart(fig, use_container_width=False, key=yaxis_title)
+    
