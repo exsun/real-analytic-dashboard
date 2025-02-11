@@ -71,6 +71,18 @@ html, body, [class*="css"] {
     height: 100vh;
 }
 
+@media (min-width: calc(736px + 8rem)) {
+    .st-emotion-cache-t1wise {
+        padding-left: 0rem;
+        padding-right: 0rem;
+    }
+}
+.st-emotion-cache-t1wise {
+    width: 100%;
+    padding: 1.75rem 1rem;
+    max-width: initial;
+    min-width: auto;
+}
 h1, h2, h3, h4, h5, h6 {
     font-family: 'dana', sans-serif;
 }
@@ -84,7 +96,9 @@ h1, h2, h3, h4, h5, h6 {
     unicode-bidi: bidi-override;
     text-align: right;
 }
-
+.st-emotion-cache-a6qe2i {
+    padding: 0px 0.5rem 0rem 0rem;
+}
 .element-container {
     direction: rtl;
 }
@@ -108,12 +122,7 @@ h1, h2, h3, h4, h5, h6 {
     border-bottom-right-radius: 0.5rem;
 }
 
-.st-emotion-cache-17oy5c7:last-child, .st-emotion-cache-1ayb4c9:last-child {
-    border-top-left-radius: 0.5rem;
-    border-bottom-left-radius: 0.5rem;
-    border-top-right-radius: 0rem;
-    border-bottom-right-radius: 0rem;
-}
+
 
 .st-emotion-cache-1k5fi8b {
     display: flex;
@@ -252,3 +261,22 @@ h1, h2, h3, h4, h5, h6 {
 .st-al {
     font-family: "dana", sans-serif;
 }
+
+
+.st-emotion-cache-46acup:last-child, .st-emotion-cache-1taz1hq:last-child {
+    border-top-right-radius: 0rem;
+    border-bottom-right-radius: 0rem;
+    margin-right: 0px;
+    border-top-left-radius: 0.5rem;
+    border-bottom-left-radius: 0.5rem;
+}
+
+.st-emotion-cache-46acup:first-child, .st-emotion-cache-1taz1hq:first-child {
+    border-top-left-radius: 0rem;
+    border-bottom-left-radius: 0rem;
+    margin-right: 0px;
+    border-top-right-radius: 0.5rem;
+    border-bottom-right-radius: 0.5rem;
+}
+
+
