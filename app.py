@@ -12,8 +12,14 @@ from utils.tools import local_css, convert_to_jalali
 from components.charts import  multi_bar_line_plot
 from components.forms.form_strength import new_strength_relative_strength_record
 from components.forms.form_stamina import new_stamina_6min_record, new_stamina_cooper_record
-from components.forms.form_anaerobic import new_anaerobic_800_200_record
-
+from components.forms.form_anaerobic import (
+    new_anaerobic_800_200_record, 
+    new_anaerobic_rast_record, 
+    new_anaerobic_wingate_record,
+    new_anaerobic_burpee_record
+    )
+from components.forms.form_agility import new_wrestle_specific_record, new_wrestle_zone_record, new_wrestle_T_record, new_wrestle_illinois_record
+from components.constants import CATEGORIES_OPTIONS
 st.set_page_config(
     page_title="ارزیابی عملکرد کشتی",
     page_icon="🎯",
@@ -41,6 +47,9 @@ except Exception as e:
 
 if "record_data" not in st.session_state:
     st.session_state.record_data = {}
+if "athlete_weight" not in st.session_state:
+    st.session_state.athlete_weight = 0
+
 
 local_css("assets/styles/custom.css")
 
@@ -69,12 +78,11 @@ def update_data(*args, **kwargs):
     copy_data = args[0].copy()
     filtered_df = copy_data.loc[st.session_state[kwargs['records_data']]['deleted_rows']]  
     deleted_data = deleteListRecords(filtered_df['result_id'].to_list())
-    # st.toast(st.session_state[kwargs['records_data']])
 
-def visual_records_by_athlete(athletes, athletes_records ,athletes_name, test_name, title, xaxis_title, yaxis_title):
+def visual_records_by_athlete(athletes, athletes_records ,athletes_name, test_name, title, xaxis, yaxis, xaxis_title, yaxis_title):
         
     athlete_id = athletes[athletes["name"].isin(athletes_name)]['athlete_id']
-    # athletes_id
+
     selected_records = athletes_records[athletes_records["athlete_id"].isin(athlete_id)]
 
     # Extract the name from athlete_name
@@ -83,48 +91,64 @@ def visual_records_by_athlete(athletes, athletes_records ,athletes_name, test_na
     selected_records["athlete_image"] = selected_records["athlete_data"].apply(lambda x: x["image_url"])
     selected_records["updated_datetime"] = selected_records["updated_at"].apply(convert_to_jalali)
 
-    selected_records[yaxis_title] = selected_records["raw_data"].apply(lambda x: x[yaxis_title])
+    selected_records[yaxis] = selected_records["raw_data"].apply(lambda x: x[yaxis])
 
-    grouped_df = selected_records.groupby(["athlete_name", "test_date"])[yaxis_title].sum().reset_index()
+    grouped_df = selected_records.groupby(["athlete_name", xaxis])[yaxis].sum().reset_index()
 
     # Extract unique athletes
     athletes_list = grouped_df["athlete_name"].unique().tolist()
 
     # Create a dictionary to store only existing values (No None, No 0s)
     athlete_data = {
-        athlete: grouped_df[grouped_df["athlete_name"] == athlete].set_index("test_date")[yaxis_title].to_dict()
+        athlete: grouped_df[grouped_df["athlete_name"] == athlete].set_index(xaxis)[yaxis].to_dict()
         for athlete in athletes_list
     }
     
     option_map = {
-        "chart": ":material/monitoring:",
-        "table": ":material/table:",
+        "multi": ":material/monitoring:",
+        "bar": ":material/equalizer:",
+        "line": ":material/show_chart:",
+
     }
 
-    selection = st.pills(
+    chart_view = st.segmented_control(
         "",
         options=option_map.keys(),
         format_func=lambda option: option_map[option],
         selection_mode="single",
-        default="chart",
+        default="multi",
         key=f"{yaxis_title}-seletion-view"
     )
     chart , table = st.columns(2, vertical_alignment="center")
-    # if selection == "chart":
     with chart:
-        # Call the updated function to generate the chart
-        multi_bar_line_plot(
-            title=title, 
-            athlete_data=athlete_data, 
-            xaxis_title=xaxis_title, 
-            yaxis_title=yaxis_title, 
-            athletes=athletes_list
-        )
+        if chart_view == "multi":
+            # if selection == "chart":
+                # Call the updated function to generate the chart
+                multi_bar_line_plot(
+                    title=title, 
+                    athlete_data=athlete_data, 
+                    xaxis_title=xaxis_title, 
+                    yaxis_title=yaxis_title, 
+                    athletes=athletes_list
+                )
+        elif chart_view == "bar":
+            # if selection == "chart":
+            with chart:
+                # Call the updated function to generate the chart
+                multi_bar_line_plot(
+                    title=title, 
+                    athlete_data=athlete_data, 
+                    xaxis_title=xaxis_title, 
+                    yaxis_title=yaxis_title, 
+                    athletes=athletes_list
+                )
+        else:
+            st.info("لطفا یک گزینه را انتخاب کنید")
     # elif selection == "table":
     with table:
         selected_records = selected_records.reset_index(drop=True)
         st.data_editor(
-            selected_records.filter(items=['athlete_image', 'athlete_name', 'test_date', yaxis_title, 'test_category','test_name', 'updated_datetime']),  
+            selected_records.filter(items=['athlete_image', 'athlete_name', 'test_date', yaxis, 'test_category','test_name', 'updated_datetime']),  
             hide_index=None,
             disabled=('athlete_image','updated_datetime', 'test_category', 'test_name'),
             column_config={
@@ -145,14 +169,14 @@ def visual_records_by_athlete(athletes, athletes_records ,athletes_name, test_na
                 ),
                 "test_category": st.column_config.TextColumn(
                     "دسته",
-                    help="تاریخ 🎈",
+                    help="نام دسته 🎈",
                 ),
                 "test_name": st.column_config.TextColumn(
                     "تست",
                     default=test_name,
-                    help="تاریخ 🎈",
+                    help="نام تست 🎈",
                 ),
-                yaxis_title: st.column_config.NumberColumn(
+                yaxis: st.column_config.NumberColumn(
                     yaxis_title,
                     help=f"{yaxis_title} 🎈",
                 ),
@@ -173,38 +197,45 @@ def visual_records_by_athlete(athletes, athletes_records ,athletes_name, test_na
 import random
 @st.fragment
 def category_records(category):
-    categories_keys = list(categories_options[category].keys())
+    categories_keys = list(CATEGORIES_OPTIONS[category].keys())
     
     record_name = st.pills(
         "",
         options=categories_keys,
         selection_mode="single",
         default=categories_keys[0],
-        key=categories_options[category]
+        key=CATEGORIES_OPTIONS[category]
     )
 
     records = listAthletesRecordsByName(test_name=record_name)
+    record_option = CATEGORIES_OPTIONS[category][record_name]
     if records:
         athletes_records = pd.DataFrame(records)
-       
-        yaxis_title_options = st.selectbox(
+
+        yaxis_title_options = st.segmented_control(
             "",
-            options=categories_options[category][record_name]['yaxis_title_options'],
+            options=record_option['yaxis_title_options'],
+            default=record_option['yaxis_title_options'][0],
+            selection_mode="single",
             key=record_name
         )
+        selected_index = record_option['yaxis_title_options'].index(yaxis_title_options)
+
         visual_records_by_athlete(
                                 athletes, 
                                 athletes_records, 
                                 athletes_name, 
                                 test_name=category, 
-                                title=categories_options[category][record_name]["title"], 
-                                xaxis_title=categories_options[category][record_name]["xaxis_title"], 
+                                title=record_option["title"], 
+                                xaxis=record_option["xaxis"], 
+                                yaxis=record_option['yaxis_options'][selected_index],
+                                xaxis_title=record_option["xaxis_title"], 
                                 yaxis_title=yaxis_title_options
                                 )
     else:
         st.info(f"داده ای برای تست {category} وجود ندارد")
-    # categories_options[category][record_name]
-    if st.button(":material/add: رکورد جدید", key=categories_options[category][record_name]):
+    # record_option
+    if st.button(":material/add: رکورد جدید", key=record_option):
         match record_name:
             case "۶-دقیقه":
                 return new_stamina_6min_record(athletes, record_name, category)
@@ -212,11 +243,22 @@ def category_records(category):
                 return new_stamina_cooper_record(athletes, record_name, category)
             case "قدرت نسبی":
                 return new_strength_relative_strength_record(athletes, record_name, category)
-
             case "افت-عملکرد":
                 return new_anaerobic_800_200_record(athletes, record_name, category)
-
-
+            case "RAST":
+                return new_anaerobic_rast_record(athletes, record_name, category)
+            case "wingate":
+                return new_anaerobic_wingate_record(athletes, record_name, category)
+            case "burpee":
+                return new_anaerobic_burpee_record(athletes, record_name, category)
+            case "ویژه کشتی":
+                return new_wrestle_specific_record(athletes, record_name, category)
+            case "منطقه":
+                return new_wrestle_zone_record(athletes, record_name, category)
+            case "T":
+                return new_wrestle_T_record(athletes, record_name, category)
+            case "illinois":
+                return new_wrestle_illinois_record(athletes, record_name, category)
 
 # with st.sidebar: 
 left, center, right = st.columns([1,3,1])
@@ -242,126 +284,13 @@ with st.sidebar:
 
     record_date = datepicker_component(config=config)
 
-categories_options = {
-        "قدرت" : {
-            "قدرت نسبی": {
-                "title":"تست قدرت نسبی", 
-                "xaxis_title": "تاریخ",
-                "yaxis_title_options":[
-                    "relative_strength",
-                    "one_repetition_maximum",
-                ],
-            },   
-        },
-        "استقامت" : {
-            "۶-دقیقه": {
-                "title":"تست ۶-دقیقه", 
-                "xaxis_title": "تاریخ",
-                "yaxis_title_options":[
-                    "vo2max",
-                ],
-            },
-            "cooper": {
-                "title":"cooper ",
-                "xaxis_title": "تاریخ", 
-                "yaxis_title_options":[
-                    "vo2max",
-                ],
-               
-            }   
-        },
-        "بی-هوازی" : { 
-            "افت-عملکرد": {
-                "title":"تست افت-عملکرد", 
-                "xaxis_title": "تاریخ",
-                "yaxis_title_options":[
-                    "performance_decrease",
-                    "performance_perc",
-                ],
-            },
-            "RAST": {
-                "title":"تست RAST", 
-                "xaxis_title": "تاریخ",
-                "yaxis_title_options":[
-                    "peak_power",
-                    "average_power",
-                    "total_power",
-                    "fatigue_index",
-                ],
-            },
-            "wingate": {
-                "title":"تست wingate", 
-                "xaxis_title": "تاریخ",
-                "yaxis_title_options":[
-                    "peak_power",
-                    "average_power",
-                    "total_power",
-                    "fatigue_index",
-                ],
-            },
-            "burpee": {
-                "title":"تست burpee", 
-                "xaxis_title": "تاریخ",
-                "yaxis_title_options":[
-                    "burpee_count",
-                ],
-            },
-        },
-        "چابکی" : {
-            "ویژه کشتی": {
-                "title":"تست ویژه کشتی", 
-                "xaxis_title": "تاریخ",
-                "yaxis_title_options":[
-                    "wrestle_specific_duration",
-                ],
-            },
-            "خرسی": {
-                "title":"تست خرسی", 
-                "xaxis_title": "تاریخ",
-                "yaxis_title_options":[
-                    "bear_duration",
-                ],
-            },
-            "منطقه": {
-                "title":"تست منطقه", 
-                "xaxis_title": "تاریخ",
-                "yaxis_title_options":[
-                    "zone_duration",
-                ],
-            }, 
-            "T": {
-                "title":"تست T", 
-                "xaxis_title": "تاریخ",
-                "yaxis_title_options":[
-                    "T_duration",
-                ],
-            }, 
-            "illinois": {
-                "title":"تست illinois",
-                "xaxis_title": "تاریخ",
-                "yaxis_title_options":[
-                    "illinois_duration",
-                ],
-            },
-        },
-        "عکس العمل" : {
-            "",    
-        },
-        "انعطاف پذیری" : {
-            "",    
-        },
-        "استقامت عضلانی" : {
-            "",    
-        },
-
-    }
 
 
 @st.fragment
 def athletes_records_container():
 
     
-    categories = list(categories_options.keys())
+    categories = list(CATEGORIES_OPTIONS.keys())
     category = st.pills(
         "",
         options=categories,
@@ -378,7 +307,14 @@ def athletes_records_container():
     
 
 if athletes_name:
-    selected_athletes(athletes_name)
+    # selected_athletes(athletes_name)
+    col1, col2, col3 = st.columns(3)
+    with col1.container(border=True):
+        st.metric(label="Temperature", value="70 °F", delta="1.2 °F")
+    with col2.container(border=True):
+        st.metric(label="Temperature", value="70 °F", delta="1.2 °F")
+    with col3.container(border=True):
+        st.metric(label="Temperature", value="70 °F", delta="1.2 °F")
 
     athletes_records_container()
 
