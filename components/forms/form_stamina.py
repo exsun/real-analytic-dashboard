@@ -69,9 +69,12 @@ def new_stamina_6min_record(athletes , record_name, category):
             }
             st.metric(label="VO2Max (اکنون)", value=vo2max)
             
-            insertRecord(new_record)
-            st.rerun()
 
+                    
+            if st.button("ذخیره"):
+                insertRecord(new_record)
+                st.reload()
+                
 @st.dialog("تست جدید")
 def new_stamina_cooper_record(athletes , record_name, category):
     st.title(record_name)
@@ -133,5 +136,8 @@ def new_stamina_cooper_record(athletes , record_name, category):
             }
             st.metric(label="VO2Max (اکنون)", value=vo2max_cooper)
 # Insert Data
-            insertRecord(new_record)
-            st.rerun()
+
+                    
+            if st.button("ذخیره"):
+                insertRecord(new_record)
+                st.reload()

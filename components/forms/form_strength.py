@@ -129,4 +129,8 @@ def new_strength_relative_strength_record(athletes , record_name, category):
                 st.dataframe(df_data)
 
 # Insert Data
-                insertRecord(new_record)
+
+                    
+                if st.button("ذخیره"):
+                    insertRecord(new_record)
+                    st.reload()

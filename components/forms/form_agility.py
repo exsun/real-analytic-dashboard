@@ -74,10 +74,11 @@ def new_wrestle_specific_record(athletes , record_name, category):
             st.metric(label="آزمون خرسی (ثانیه)", value=f"{bear_duration}")
     
 # Insert Data
-            insertRecord(new_record)
 
-# Rerun Page
-            st.rerun()
+                    
+            if st.button("ذخیره"):
+                insertRecord(new_record)
+                st.reload()
 
 
 
@@ -150,10 +151,11 @@ def new_wrestle_bear_record(athletes , record_name, category):
             st.metric(label="آزمون چابکی ویژه کشتی (ثانیه)", value=f"{wrestle_specific_duration}")
     
 # Insert Data
-            insertRecord(new_record)
 
-# Rerun Page
-            st.rerun()
+                    
+            if st.button("ذخیره"):
+                insertRecord(new_record)
+                st.reload()
 
 
 @st.dialog("تست جدید")
@@ -224,10 +226,11 @@ def new_wrestle_zone_record(athletes , record_name, category):
             st.metric(label="آزمون منطقه (ثانیه)", value=f"{zone_duration}")
     
 # Insert Data
-            insertRecord(new_record)
 
-# Rerun Page
-            st.rerun()
+                    
+            if st.button("ذخیره"):
+                insertRecord(new_record)
+                st.reload()
 
 
 @st.dialog("تست جدید")
@@ -298,10 +301,11 @@ def new_wrestle_T_record(athletes , record_name, category):
             st.metric(label="آزمون T (ثانیه)", value=f"{T_duration}")
     
 # Insert Data
-            insertRecord(new_record)
 
-# Rerun Page
-            st.rerun()
+                    
+            if st.button("ذخیره"):
+                insertRecord(new_record)
+                st.reload()
 
 
 
@@ -372,7 +376,8 @@ def new_wrestle_illinois_record(athletes , record_name, category):
             st.metric(label="آزمون illinois (ثانیه)", value=f"{illinois_duration}")
     
 # Insert Data
-            insertRecord(new_record)
 
-# Rerun Page
-            st.rerun()
+                    
+            if st.button("ذخیره"):
+                insertRecord(new_record)
+                st.reload()

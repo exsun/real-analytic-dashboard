@@ -109,10 +109,10 @@ def new_anaerobic_800_200_record(athletes , record_name, category):
                     st.metric(label="افت عملکرد (%)", value=f"{performance_perc}%")
                     st.metric(label="افت عملکرد میزان", value=f"{performance_decrease}%")
 
-                    insertRecord(new_record)
                     
-                    st.rerun()
-
+                    if st.button("ذخیره"):
+                        insertRecord(new_record)
+                        st.reload()
 
                     # st.info('برای مشاهده بیشتر به تب تاریخچه بروید.', icon="ℹ️")
                     
@@ -221,9 +221,11 @@ def new_anaerobic_rast_record(athletes , record_name, category):
             metrics[1].metric(label="توان میانگین (W)", value=f"{average_power} W")
             metrics[2].metric(label="شاخص خستگی (%)", value=f"{fatigue_index}%")
             metrics[3].metric(label="توان بی‌هوازی کل (W)", value=f"{total_power} W")
-            insertRecord(new_record)
-            
-            st.rerun()
+
+                    
+            if st.button("ذخیره"):
+                insertRecord(new_record)
+                st.reload()
 
 
             # st.info('برای مشاهده بیشتر به تب تاریخچه بروید.', icon="ℹ️")
@@ -312,10 +314,11 @@ def new_anaerobic_wingate_record(athletes , record_name, category):
                 metrics[2].metric(label="شاخص خستگی (%)", value=f"{fatigue_index}%")
                 metrics[3].metric(label="توان بی‌هوازی کل (W)", value=f"{total_power} W")
 
-                insertRecord(new_record)
 
-                st.rerun()
-
+                    
+                if st.button("ذخیره"):
+                    insertRecord(new_record)
+                    st.reload()
 
             # st.info('برای مشاهده بیشتر به تب تاریخچه بروید.', icon="ℹ️")
             
@@ -390,9 +393,11 @@ def new_anaerobic_burpee_record(athletes , record_name, category):
             
             # Display metrics
             st.metric(label="تعداد کل بورپی", value=burpee_count)
-            insertRecord(new_record)
 
-            st.rerun()
+            
+            if st.button("ذخیره"):
+                insertRecord(new_record)
+                st.reload()
 
 
             # st.info('برای مشاهده بیشتر به تب تاریخچه بروید.', icon="ℹ️")
