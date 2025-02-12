@@ -224,14 +224,43 @@ CATEGORIES_OPTIONS = {
                 ],
             },
         },
-        "عکس العمل" : {
-            "",    
-        },
         "انعطاف پذیری" : {
-            "",    
+            "sit_reach": {
+                "title":"آزمون sit_reach",
+                "xaxis_title": "تاریخ",
+                "yaxis_title_options":[
+                    "طول sit&reach",
+                ],
+                "xaxis": "test_date",
+                "yaxis_options":[
+                    "sit_reach_distance",
+                ],
+            },
+            "بالا-آوردن-شانه": {
+                "title":"آزمون بالا آوردن شانه",
+                "xaxis_title": "تاریخ",
+                "yaxis_title_options":[
+                    "طول بالا آوردن شانه",
+                ],
+                "xaxis": "test_date",
+                "yaxis_options":[
+                    "shoulder_lift_distance",
+                ],
+            },
+              "باز-شدن-بالا-تنه": {
+                "title":"آزمون باز شدن بالا تنه",
+                "xaxis_title": "تاریخ",
+                "yaxis_title_options":[
+                    "باز شدن بالا تنه",
+                ],
+                "xaxis": "test_date",
+                "yaxis_options":[
+                    "upper_body_opening_distance",
+                ],
+            },
         },
         "استقامت عضلانی" : {
-            "",    
+            "",
         },
 
     }
