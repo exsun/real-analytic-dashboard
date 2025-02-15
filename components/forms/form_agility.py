@@ -78,7 +78,7 @@ def new_wrestle_specific_record(athletes , record_name, category):
                     
             if st.button("ذخیره"):
                 insertRecord(new_record)
-                st.reload()
+                st.rerun()
 
 
 
@@ -155,7 +155,7 @@ def new_wrestle_bear_record(athletes , record_name, category):
                     
             if st.button("ذخیره"):
                 insertRecord(new_record)
-                st.reload()
+                st.rerun()
 
 
 @st.dialog("تست جدید")
@@ -230,7 +230,7 @@ def new_wrestle_zone_record(athletes , record_name, category):
                     
             if st.button("ذخیره"):
                 insertRecord(new_record)
-                st.reload()
+                st.rerun()
 
 
 @st.dialog("تست جدید")
@@ -305,7 +305,7 @@ def new_wrestle_T_record(athletes , record_name, category):
                     
             if st.button("ذخیره"):
                 insertRecord(new_record)
-                st.reload()
+                st.rerun()
 
 
 
@@ -380,4 +380,4 @@ def new_wrestle_illinois_record(athletes , record_name, category):
                     
             if st.button("ذخیره"):
                 insertRecord(new_record)
-                st.reload()
+                st.rerun()

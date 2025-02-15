@@ -73,7 +73,7 @@ def new_stamina_6min_record(athletes , record_name, category):
                     
             if st.button("ذخیره"):
                 insertRecord(new_record)
-                st.reload()
+                st.rerun()
                 
 @st.dialog("تست جدید")
 def new_stamina_cooper_record(athletes , record_name, category):
@@ -140,4 +140,4 @@ def new_stamina_cooper_record(athletes , record_name, category):
                     
             if st.button("ذخیره"):
                 insertRecord(new_record)
-                st.reload()
+                st.rerun()

@@ -112,7 +112,7 @@ def new_anaerobic_800_200_record(athletes , record_name, category):
                     
                     if st.button("ذخیره"):
                         insertRecord(new_record)
-                        st.reload()
+                        st.rerun()
 
                     # st.info('برای مشاهده بیشتر به تب تاریخچه بروید.', icon="ℹ️")
                     
@@ -225,7 +225,7 @@ def new_anaerobic_rast_record(athletes , record_name, category):
                     
             if st.button("ذخیره"):
                 insertRecord(new_record)
-                st.reload()
+                st.rerun()
 
 
             # st.info('برای مشاهده بیشتر به تب تاریخچه بروید.', icon="ℹ️")
@@ -318,7 +318,7 @@ def new_anaerobic_wingate_record(athletes , record_name, category):
                     
                 if st.button("ذخیره"):
                     insertRecord(new_record)
-                    st.reload()
+                    st.rerun()
 
             # st.info('برای مشاهده بیشتر به تب تاریخچه بروید.', icon="ℹ️")
             
@@ -397,7 +397,7 @@ def new_anaerobic_burpee_record(athletes , record_name, category):
             
             if st.button("ذخیره"):
                 insertRecord(new_record)
-                st.reload()
+                st.rerun()
 
 
             # st.info('برای مشاهده بیشتر به تب تاریخچه بروید.', icon="ℹ️")
