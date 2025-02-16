@@ -131,5 +131,7 @@ def new_strength_relative_strength_record(athletes , record_name, category):
 # Insert Data
 
                     
+                              
                 insertRecord(new_record)
+                
                 st.rerun()

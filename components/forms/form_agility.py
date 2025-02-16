@@ -32,18 +32,18 @@ def new_wrestle_specific_record(athletes , record_name, category):
             )
 # Record Input
         with st.form("wrestle_specific_form", enter_to_submit=False, clear_on_submit=False, border=True):
-            bear_duration = st.number_input("مدت زمان آزمون خرسی (ثانیه)", min_value=1, value=20, step=1, key="bear_duration")
+            wrestle_specific_duration = st.number_input("مدت زمان آزمون چابکی ویژه کشتی (ثانیه)", min_value=1, value=20, step=1, key="wrestle_specific_duration")
             
             day , month, year= st.columns(3)
             with year:
                 years = list(range(JalaliDate.today().year+1, 1390, -1))
-                selected_year = st.selectbox("", years, index=years.index(JalaliDate.today().year) , key="year")
+                selected_year = st.selectbox("", years, index=years.index(JalaliDate.today().year))
             with month:
                 months = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"]
-                selected_month = st.selectbox("", months, index=JalaliDate.today().month - 1 , key="month")
+                selected_month = st.selectbox("", months, index=JalaliDate.today().month - 1)
             with day:
                 days = list(range(1, 32))
-                selected_day = st.selectbox("تاریخ", days, index=JalaliDate.today().day - 1 , key="day")
+                selected_day = st.selectbox("تاریخ", days, index=JalaliDate.today().day - 1)
             selected_time = st.time_input("زمان", datetime.time(8, 45))
 
             record_date = JalaliDateTime(selected_year, months.index(selected_month) + 1, selected_day, locale="en")
@@ -55,30 +55,28 @@ def new_wrestle_specific_record(athletes , record_name, category):
 
             submitted = st.form_submit_button("محاسبه")
         
-# Record Data
-        
         if submitted:
             exercise_data = {
-                "bear_duration": bear_duration,
+                "wrestle_specific_duration": wrestle_specific_duration,
             }
 
             new_record = {
                 "athlete_id": int(athlete_id),
                 "raw_data": exercise_data,
-                "test_name": "خرسی",
+                "test_name": "ویژه-کشتی",
                 "test_category": "چابکی",
                 "test_date": record_date,
                 "gregorian_date": gregorian_date
             }
         
-            st.metric(label="آزمون خرسی (ثانیه)", value=f"{bear_duration}")
+            st.metric(label="آزمون چابکی ویژه کشتی (ثانیه)", value=f"{wrestle_specific_duration}")
     
 # Insert Data
 
                     
-            if st.button("ذخیره"):
-                insertRecord(new_record)
-                st.rerun()
+            insertRecord(new_record)
+                
+            st.rerun()
 
 
 
@@ -108,19 +106,19 @@ def new_wrestle_bear_record(athletes , record_name, category):
             key="athlete_weight",
             )
 # Record Input
-        with st.form("wrestle_specific_form", enter_to_submit=False, clear_on_submit=False, border=True):
-            wrestle_specific_duration = st.number_input("مدت زمان آزمون چابکی ویژه کشتی (ثانیه)", min_value=1, value=20, step=1, key="wrestle_specific_duration")
+        with st.form("bear_form", enter_to_submit=False, clear_on_submit=False, border=True):
+            bear_duration = st.number_input("مدت زمان آزمون خرسی (ثانیه)", min_value=1, value=20, step=1, key="bear_duration")
             
             day , month, year= st.columns(3)
             with year:
                 years = list(range(JalaliDate.today().year+1, 1390, -1))
-                selected_year = st.selectbox("", years, index=years.index(JalaliDate.today().year))
+                selected_year = st.selectbox("", years, index=years.index(JalaliDate.today().year) , key="year")
             with month:
                 months = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"]
-                selected_month = st.selectbox("", months, index=JalaliDate.today().month - 1)
+                selected_month = st.selectbox("", months, index=JalaliDate.today().month - 1 , key="month")
             with day:
                 days = list(range(1, 32))
-                selected_day = st.selectbox("تاریخ", days, index=JalaliDate.today().day - 1)
+                selected_day = st.selectbox("تاریخ", days, index=JalaliDate.today().day - 1 , key="day")
             selected_time = st.time_input("زمان", datetime.time(8, 45))
 
             record_date = JalaliDateTime(selected_year, months.index(selected_month) + 1, selected_day, locale="en")
@@ -129,32 +127,31 @@ def new_wrestle_bear_record(athletes , record_name, category):
             record_date = record_date.strftime("%Y-%m-%d") + " " + selected_time.strftime("%H:%M:%S")
             gregorian_date = gregorian_date.strftime("%Y-%m-%d")  + " " + selected_time.strftime("%H:%M:%S")
 
-
             submitted = st.form_submit_button("محاسبه")
         
 # Record Data
         
-        if submitted:
-            exercise_data = {
-                "wrestle_specific_duration": wrestle_specific_duration,
-            }
+            if submitted:
+                exercise_data = {
+                    "bear_duration": bear_duration,
+                }
 
-            new_record = {
-                "athlete_id": int(athlete_id),
-                "raw_data": exercise_data,
-                "test_name": "ویژه-کشتی",
-                "test_category": "چابکی",
-                "test_date": record_date,
-                "gregorian_date": gregorian_date
-            }
+                new_record = {
+                    "athlete_id": int(athlete_id),
+                    "raw_data": exercise_data,
+                    "test_name": "خرسی",
+                    "test_category": "چابکی",
+                    "test_date": record_date,
+                    "gregorian_date": gregorian_date
+                }
+            
+                st.metric(label="آزمون خرسی (ثانیه)", value=f"{bear_duration}")
         
-            st.metric(label="آزمون چابکی ویژه کشتی (ثانیه)", value=f"{wrestle_specific_duration}")
-    
-# Insert Data
+    # Insert Data
 
-                    
-            if st.button("ذخیره"):
+                        
                 insertRecord(new_record)
+                    
                 st.rerun()
 
 
@@ -228,9 +225,9 @@ def new_wrestle_zone_record(athletes , record_name, category):
 # Insert Data
 
                     
-            if st.button("ذخیره"):
-                insertRecord(new_record)
-                st.rerun()
+            insertRecord(new_record)
+                
+            st.rerun()
 
 
 @st.dialog("تست جدید")
@@ -303,9 +300,9 @@ def new_wrestle_T_record(athletes , record_name, category):
 # Insert Data
 
                     
-            if st.button("ذخیره"):
-                insertRecord(new_record)
-                st.rerun()
+            insertRecord(new_record)
+                
+            st.rerun()
 
 
 
@@ -378,6 +375,6 @@ def new_wrestle_illinois_record(athletes , record_name, category):
 # Insert Data
 
                     
-            if st.button("ذخیره"):
-                insertRecord(new_record)
-                st.rerun()
+            insertRecord(new_record)
+                
+            st.rerun()

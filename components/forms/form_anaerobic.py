@@ -110,9 +110,9 @@ def new_anaerobic_800_200_record(athletes , record_name, category):
                     st.metric(label="افت عملکرد میزان", value=f"{performance_decrease}%")
 
                     
-                    if st.button("ذخیره"):
-                        insertRecord(new_record)
-                        st.rerun()
+                    insertRecord(new_record)
+                
+                    st.rerun()
 
                     # st.info('برای مشاهده بیشتر به تب تاریخچه بروید.', icon="ℹ️")
                     
@@ -223,9 +223,9 @@ def new_anaerobic_rast_record(athletes , record_name, category):
             metrics[3].metric(label="توان بی‌هوازی کل (W)", value=f"{total_power} W")
 
                     
-            if st.button("ذخیره"):
-                insertRecord(new_record)
-                st.rerun()
+            insertRecord(new_record)
+                
+            st.rerun()
 
 
             # st.info('برای مشاهده بیشتر به تب تاریخچه بروید.', icon="ℹ️")
@@ -316,9 +316,9 @@ def new_anaerobic_wingate_record(athletes , record_name, category):
 
 
                     
-                if st.button("ذخیره"):
-                    insertRecord(new_record)
-                    st.rerun()
+                insertRecord(new_record)
+                
+                st.rerun()
 
             # st.info('برای مشاهده بیشتر به تب تاریخچه بروید.', icon="ℹ️")
             
@@ -395,9 +395,9 @@ def new_anaerobic_burpee_record(athletes , record_name, category):
             st.metric(label="تعداد کل بورپی", value=burpee_count)
 
             
-            if st.button("ذخیره"):
-                insertRecord(new_record)
-                st.rerun()
+            insertRecord(new_record)
+                
+            st.rerun()
 
 
             # st.info('برای مشاهده بیشتر به تب تاریخچه بروید.', icon="ℹ️")
