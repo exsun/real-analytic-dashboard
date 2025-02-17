@@ -37,6 +37,8 @@ from components.forms.form_muscle_stamina import (
     dip_parallel_form
     )
 from components.constants import CATEGORIES_OPTIONS, EXERCISE_OPTIONS, REP_PERCENTAGE_DATA
+import jdatetime
+from typing import List, Union, Dict
 
 
 st.set_page_config(
@@ -118,45 +120,7 @@ def visual_records_by_athlete(
 
     table , chart = st.columns(2, vertical_alignment="top")
     # record_option
-    if table.button(":material/add: رکورد جدید", key=record_option):
-        match record_name:
-            case "۶-دقیقه":
-                return new_stamina_6min_record(athletes, record_name, record_category)
-            case "cooper":
-                return new_stamina_cooper_record(athletes, record_name, record_category)
-            case "قدرت نسبی":
-                return new_strength_relative_strength_record(athletes, record_name, record_category)
-            case "افت-عملکرد":
-                return new_anaerobic_800_200_record(athletes, record_name, record_category)
-            case "RAST":
-                return new_anaerobic_rast_record(athletes, record_name, record_category)
-            case "wingate":
-                return new_anaerobic_wingate_record(athletes, record_name, record_category)
-            case "burpee":
-                return new_anaerobic_burpee_record(athletes, record_name, record_category)
-            case "ویژه-کشتی":
-                return new_wrestle_specific_record(athletes, record_name, record_category)
-            case "خرسی":
-                return new_wrestle_bear_record(athletes, record_name, record_category)
-            case "منطقه":
-                return new_wrestle_zone_record(athletes, record_name, record_category)
-            case "T":
-                return new_wrestle_T_record(athletes, record_name, record_category)
-            case "illinois":
-                return new_wrestle_illinois_record(athletes, record_name, record_category)
-            case "sit&reach":
-                return sit_reach_form(athletes, record_name, record_category)
-            case "بالا-آوردن-شانه":
-                return shoulder_lift_form(athletes, record_name, record_category)
-            case "باز-شدن-بالا-تنه":
-                return upper_body_opening_form(athletes, record_name, record_category)
-            case "دراز-نشست":
-                return situp_form(athletes, record_name, record_category)
-            case "بارفیکس":
-                return pullup_form(athletes, record_name, record_category)
-            case "دیپ-پارالل":
-                return dip_parallel_form(athletes, record_name, record_category)
-
+    
     # Extract the name from athlete_name
 
     selected_records["athlete_name"] = selected_records["athlete_data"].apply(lambda x: x["name"])
@@ -164,7 +128,9 @@ def visual_records_by_athlete(
     selected_records["updated_datetime"] = selected_records["updated_at"].apply(convert_to_jalali)
 
     selected_records[yaxis] = selected_records["raw_data"].apply(lambda x: x[yaxis])
-    if yaxis == 'relative_strength':
+    print("--------->",yaxis)
+    if yaxis in ('relative_strength','relative_strength'):
+
         selected_records['exercise'] = selected_records["raw_data"].apply(lambda x: x['exercise'])
         exercise = table.selectbox("نام حرکت:",
                 options=selected_records['exercise'].unique() ,
@@ -273,8 +239,8 @@ def visual_records_by_athlete(
 
 import random
 @st.fragment
-def category_records(category):
-    categories_keys = list(CATEGORIES_OPTIONS[category].keys())
+def category_records(record_category):
+    categories_keys = list(CATEGORIES_OPTIONS[record_category].keys())
     record_selector_col, metric_selector_col, chart_selector_col = st.columns(3, vertical_alignment="top")
 
     record_name = record_selector_col.pills(
@@ -282,12 +248,51 @@ def category_records(category):
         options=categories_keys,
         selection_mode="single",
         default=categories_keys[0],
-        key=CATEGORIES_OPTIONS[category]
+        key=CATEGORIES_OPTIONS[record_category]
     )
     if record_name:
    
         records = listAthletesRecordsByName(test_name=record_name, range_date=range_record_date)
-        record_option = CATEGORIES_OPTIONS[category][record_name]
+        record_option = CATEGORIES_OPTIONS[record_category][record_name]
+        if st.button(":material/add: رکورد جدید", key=record_option):
+            match record_name:
+                case "۶-دقیقه":
+                    return new_stamina_6min_record(athletes, record_name, record_category)
+                case "cooper":
+                    return new_stamina_cooper_record(athletes, record_name, record_category)
+                case "قدرت نسبی":
+                    return new_strength_relative_strength_record(athletes, record_name, record_category)
+                case "افت-عملکرد":
+                    return new_anaerobic_800_200_record(athletes, record_name, record_category)
+                case "RAST":
+                    return new_anaerobic_rast_record(athletes, record_name, record_category)
+                case "wingate":
+                    return new_anaerobic_wingate_record(athletes, record_name, record_category)
+                case "burpee":
+                    return new_anaerobic_burpee_record(athletes, record_name, record_category)
+                case "ویژه-کشتی":
+                    return new_wrestle_specific_record(athletes, record_name, record_category)
+                case "خرسی":
+                    return new_wrestle_bear_record(athletes, record_name, record_category)
+                case "منطقه":
+                    return new_wrestle_zone_record(athletes, record_name, record_category)
+                case "T":
+                    return new_wrestle_T_record(athletes, record_name, record_category)
+                case "illinois":
+                    return new_wrestle_illinois_record(athletes, record_name, record_category)
+                case "sit&reach":
+                    return sit_reach_form(athletes, record_name, record_category)
+                case "بالا-آوردن-شانه":
+                    return shoulder_lift_form(athletes, record_name, record_category)
+                case "باز-شدن-بالا-تنه":
+                    return upper_body_opening_form(athletes, record_name, record_category)
+                case "دراز-نشست":
+                    return situp_form(athletes, record_name, record_category)
+                case "بارفیکس":
+                    return pullup_form(athletes, record_name, record_category)
+                case "دیپ-پارالل":
+                    return dip_parallel_form(athletes, record_name, record_category)
+
         if records:
             athletes_records = pd.DataFrame(records)
 
@@ -306,7 +311,7 @@ def category_records(category):
                                         athletes, 
                                         athletes_records, 
                                         athletes_name, 
-                                        record_category=category, 
+                                        record_category=record_category, 
                                         record_name=record_name,
                                         record_option=record_option,
                                         title=record_option["title"], 
@@ -319,14 +324,11 @@ def category_records(category):
             else:
                 st.info("لطفا یک گزینه را انتخاب کنید")
         else:
-            st.info(f"داده ای برای تست {category} وجود ندارد")
+            st.info(f"داده ای برای تست {record_category} وجود ندارد")
     
 
     else:
         st.info("لطفا یک گزینه را انتخاب کنید")
-
-import jdatetime
-from typing import List, Union, Dict
 
 # with st.sidebar: 
 left, center, right = st.columns([1,3,1])
