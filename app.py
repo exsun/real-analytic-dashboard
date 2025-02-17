@@ -129,7 +129,7 @@ def visual_records_by_athlete(
 
     selected_records[yaxis] = selected_records["raw_data"].apply(lambda x: x[yaxis])
     print("--------->",yaxis)
-    if yaxis in ('relative_strength','relative_strength'):
+    if yaxis in ('relative_strength','one_repetition_maximum'):
 
         selected_records['exercise'] = selected_records["raw_data"].apply(lambda x: x['exercise'])
         exercise = table.selectbox("نام حرکت:",
