@@ -225,8 +225,8 @@ CATEGORIES_OPTIONS = {
             },
         },
         "انعطاف پذیری" : {
-            "sit_reach": {
-                "title":"آزمون sit_reach",
+            "sit&reach": {
+                "title":"آزمون sit&reach",
                 "xaxis_title": "تاریخ",
                 "yaxis_title_options":[
                     "طول sit&reach",
@@ -260,7 +260,39 @@ CATEGORIES_OPTIONS = {
             },
         },
         "استقامت عضلانی" : {
-            "",
+            "دراز-نشست": {
+                "title":"آزمون دراز و نشست",
+                "xaxis_title": "تاریخ",
+                "yaxis_title_options":[
+                    "تعداد دراز و نشست",
+                ],
+                "xaxis": "test_date",
+                "yaxis_options":[
+                    "situp_reps",
+                ],
+            },
+            "بارفیکس": {
+                "title":"آزمون بارفیکس",
+                "xaxis_title": "تاریخ",
+                "yaxis_title_options":[
+                    "تعداد بارفیکس",
+                ],
+                "xaxis": "test_date",
+                "yaxis_options":[
+                    "pullup_reps",
+                ],
+            },
+            "دیپ-پارالل": {
+                "title":"آزمون دیپ پارالل",
+                "xaxis_title": "تاریخ",
+                "yaxis_title_options":[
+                    "تعداد دیپ پارالل",
+                ],
+                "xaxis": "test_date",
+                "yaxis_options":[
+                    "dip_parallel_reps",
+                ],
+            },
         },
 
     }
